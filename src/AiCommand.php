@@ -105,25 +105,25 @@ class AiCommand extends WP_CLI_Command {
 			]
 		);
 
-			$server->register_tool(
-				[
-					'name'        => 'generate_image',
-					'description' => 'Generates an image.',
-					'inputSchema' => [
-						'type'       => 'object',
-						'properties' => [
-							'prompt' => [
-								'type'        => 'string',
-								'description' => 'The prompt for generating the image.',
-							],
-						],
-						'required'   => [ 'prompt' ],
-					],
-					'callable'    => function ( $params ) use ( $client ) {
-						return $client->get_image_from_ai_service( $params['prompt'] );
-					},
-				]
-			);
+//			$server->register_tool(
+//				[
+//					'name'        => 'generate_image',
+//					'description' => 'Generates an image.',
+//					'inputSchema' => [
+//						'type'       => 'object',
+//						'properties' => [
+//							'prompt' => [
+//								'type'        => 'string',
+//								'description' => 'The prompt for generating the image.',
+//							],
+//						],
+//						'required'   => [ 'prompt' ],
+//					],
+//					'callable'    => function ( $params ) use ( $client ) {
+//						return $client->get_image_from_ai_service( $params['prompt'] );
+//					},
+//				]
+//			);
 
 		$server->register_tool(
 			[
