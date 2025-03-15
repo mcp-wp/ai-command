@@ -156,10 +156,7 @@ class AiCommand extends WP_CLI_Command {
 							if ( $location_input !== 'near me' ) {
 									// Provide city name (WP will resolve coordinates)
 									$location = [
-											'latitude'  => null, // WP will attempt geolocation
-											'longitude' => null,
-											'city'      => $location_input,
-											'country'   => '', // Optional, WP may infer
+											'description' => $location_input,
 									];
 							}
 
@@ -167,7 +164,7 @@ class AiCommand extends WP_CLI_Command {
 							$events_instance = new WP_Community_Events( $user_id, $location );
 
 							// Get events from WP_Community_Events
-							$events = $events_instance->get_events();
+							$events = $events_instance->get_events($location_input);
 
 							// Check for WP_Error
 							if ( is_wp_error( $events ) ) {
