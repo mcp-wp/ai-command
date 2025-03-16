@@ -132,9 +132,20 @@ class Client {
 	public function call_ai_service_with_prompt( string $prompt ) {
 		$parts = new Parts();
 		$parts->add_text_part( $prompt );
-		$content = new Content( Content_Role::USER, $parts );
 
-		return $this->call_ai_service( [ $content ] );
+		$contents = [
+			new Content( Content_Role::USER, $parts ),
+		];
+
+//		$parts = new Parts();
+//		$parts->add_inline_data_part(
+//			'image/png',
+//			Helpers::blob_to_base64_data_url( new Blob( file_get_contents( '/private/tmp/ai-generated-imaget1sjmomi30i31C1YtZy.png' ), 'image/png' ) ),
+//		);
+//
+//		$contents[] = $parts;
+
+		return $this->call_ai_service( $contents );
 	}
 
 	private function call_ai_service( $contents ) {
