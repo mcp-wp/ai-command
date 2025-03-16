@@ -23,7 +23,7 @@ WP_CLI::add_command( 'ai', function ( $args, $assoc_args ) {
 
 	// TODO Register your tool here and add it to the collection
 
-	$image_tools = new ImageTools();
+	$image_tools = new ImageTools($client);
 
 	foreach($image_tools->get_tools() as $tool){
 		$tools->add($tool);

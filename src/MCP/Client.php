@@ -107,7 +107,7 @@ class Client {
 					rename( $filename, $filename . '.' . $extension );
 					$filename .= '.' . $extension;
 
-					file_put_contents( $filename, $image_blob->get_binary_data() );
+					// file_put_contents( $filename, $image_blob->get_binary_data() );
 
 					$image_url = $filename;
 					$image_id = \WP_CLI\AiCommand\MediaManager::upload_to_media_library($image_url);
