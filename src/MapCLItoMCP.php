@@ -3,13 +3,13 @@
 namespace WP_CLI\AiCommand;
 
 use WP_CLI;
-use WP_CLI\AiCommand\MCP\Server;
+use WP_CLI\AiCommand\Entity\Tool;
 use WP_CLI\Dispatcher;
 use WP_CLI\SynopsisParser;
 
 class MapCLItoMCP {
 
-	public function map_cli_to_mcp( Server $server ) {
+	public function map_cli_to_mcp() : array {
 
 		// Expose WP-CLI commands as tools
 		$commands = [
@@ -22,6 +22,8 @@ class MapCLItoMCP {
 			'rewrite',
 			'taxonomy',
 		];
+
+		$tools = [];
 
 		foreach ( $commands as $command ) {
 			$command_to_run  = WP_CLI::get_runner()->find_command_to_run( [ $command ] );
@@ -63,8 +65,7 @@ class MapCLItoMCP {
 					}
 				}
 
-				$server->register_tool(
-					[
+				$tool = new Tool([
 						'name'        => 'wp_cli_' . str_replace( ' ', '_', $command_name ),
 						'description' => $command_desc,
 						'inputSchema' => [
@@ -72,7 +73,7 @@ class MapCLItoMCP {
 							'properties' => $properties,
 							'required'   => $required,
 						],
-						'callable'    => function ( $params ) use ( $command_name ) {
+						'callable'    => function ( $params ) use ( $command_name, $synopsis_spec ) {
 							$args       = [];
 							$assoc_args = [];
 
@@ -109,6 +110,9 @@ class MapCLItoMCP {
 						},
 					]
 				);
+
+				$tools[] = $tool;
+				
 			} else {
 
 				\WP_CLI::debug( $command_name . ' subcommands: ' . print_r( $command->get_subcommands(), true ), 'ai' );
@@ -156,8 +160,7 @@ class MapCLItoMCP {
 							$required[] = $prop_name;
 						}
 					}
-					$server->register_tool(
-						[
+					$tool = new Tool([					
 							'name'        => 'wp_cli_' . str_replace( ' ', '_', $command_name ) . '_' . str_replace( ' ', '_', $subcommand_name ),
 							'description' => $subcommand_desc,
 							'inputSchema' => [
@@ -205,8 +208,12 @@ class MapCLItoMCP {
 							},
 						]
 					);
+
+					$tools[] = $tool;
 				}
 			}
 		}
+
+		return $tools;
 	}
 }

@@ -26,9 +26,11 @@ WP_CLI::add_command( 'ai', static function ( $args, $assoc_args ) {
 	$all_tools = [
 		...(new ImageTools($client))->get_tools(),
 		...(new MapRESTtoMCP())->map_rest_to_mcp(),
+		...(new MapCLItoMCP())->map_cli_to_mcp(),
+
 	];
 
-	foreach ($all_tools as $tool) {
+		foreach ($all_tools as $tool) {
 		$tools->add($tool);
 	}
 
