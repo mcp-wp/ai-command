@@ -2,10 +2,10 @@
 
 namespace WP_CLI\AiCommand;
 
+use WP_CLI;
 use WP_CLI\AiCommand\ToolRepository\CollectionToolRepository;
 use WP_CLI\AiCommand\Tools\FileTools;
 use WP_CLI\AiCommand\Tools\URLTools;
-use WP_CLI;
 use WP_CLI_Command;
 use WP_Community_Events;
 use WP_Error;
@@ -56,6 +56,11 @@ class AiCommand extends WP_CLI_Command {
 	 * @param array $assoc_args Associative array of associative arguments.
 	 */
 	public function __invoke( $args, $assoc_args ) {
+
+		if (empty($args) || !is_array($args)) {
+			WP_CLI::error( 'Please supply a prompt. Try "create a post".' );
+		}
+
 		$this->register_tools($this->server);
 		$this->register_resources($this->server);
 
