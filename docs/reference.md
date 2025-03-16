@@ -85,11 +85,15 @@ This class acts as the server component in the MCP architecture, interfacing wit
 | `Server::register_resource()`  | Registers structured data for AI access. |
 | `Server::get_capabilities()`  | Retrives server capabilities and returns the list of available tools and resources. Used by AI clients to understand what functions and data are accessible. |
 | `Server::handle_request()`  | Parses JSON-RPC 2.0 requests. Validates structure and executes method calls. |
-| `Server::process_method_call()`  | Determines whether the request is for fetching capabilities (`get_capabilities`), accessing data (`get_users`, `get_products`), or executing a tool (`calculate_total`, `greet`, etc.) |
-| `Server::handle_data_request()`  | Extracts requested resource and returns structured data. |
-| `Server::execute_tool()`  | Calls registered AI tools and validates input against schema. |
+| `Server::list_resources()`  | List registered resources. |
+| `Server::read_resource()`  | Retrieve resource data. Uses `get_resource_data()` method. |
+| `Server::get_resource_data()`  | Retrieve resource data. |
+| `Server::validate_input()`  | Input validation for AI tool calls. |
+| `Server::handle_get_request()`  | Retrive stored resource data. |
 | `Server::create_success_response()`  | Generates JSON-RPC success response. |
 | `Server::create_error_response()`  | Generates JSON-RPC error response. |
+| `Server::process_request()`  | Wrapper for `handle_request()` method. |
+
 
 ### Examples
 
@@ -115,11 +119,75 @@ $server->register_tool(
 Register a Resource
 
 ```PHP
-$server->register_resource([
-	'name'        => 'product_catalog',
-	'uri'         => 'file://./products.json',
-	'description' => 'Product catalog',
-	'mimeType'    => 'application/json',
-	'filePath'    => './products.json'
-]);
+$server->register_resource(
+	[
+		'name'        => 'product_catalog',
+		'uri'         => 'file://./products.json',
+		'description' => 'Product catalog',
+		'mimeType'    => 'application/json',
+		'filePath'    => './products.json'
+	]
+);
 ```
+
+List resources
+
+```PHP
+$server    = new WP_CLI\AiCommand\MCP\Server();
+$resources = $server->list_resources();
+
+echo json_encode( $resources, JSON_PRETTY_PRINT );
+```
+
+Read resource
+
+```PHP
+$server        = new WP_CLI\AiCommand\MCP\Server();
+$resource_data = $server->read_resource( 'file://./products.json' );
+
+echo json_encode( $resource_data, JSON_PRETTY_PRINT );
+```
+
+Validate input
+
+```PHP
+$input  = [ 'price' => 100, 'quantity' => 2 ];
+$schema = $server->get_capabilities()['methods'][0]['inputSchema'];
+
+$result = $server->validate_input( $input, $schema );
+```
+
+## `RouteInformation` class
+
+The `RouteInformation` class encapsulates details about a WordPress REST API route, including its method type (`GET`, `POST`, `PUT`, etc.), callback function, and whether it conforms to a `WP_REST_Controller`. The class provides helper methods for route sanitization, method checking, and controller validation.
+
+### Methods
+
+| Name | Return Type | Description |
+| --- | --- | --- |
+| `RouteInformation::get_sanitized_route_name()` | `string` | Returns a cleaned-up route name (e.g., GET_wp-v2-posts_p_id). |
+| `RouteInformation::get_method()` | `string` | Returns the HTTP method (`GET`, `POST`, etc.). |
+| `RouteInformation::is_create()` | `bool` | Returns `true` if the method is `POST`. |
+| `RouteInformation::is_update()` | `bool` | Returns `true` if the method is `PUT` or `PATCH`. |
+| `RouteInformation::is_delete()` | `bool` | Returns `true` if the method is `DELETE`. |
+| `RouteInformation::is_get()` | `bool` | Returns `true` if the method is `GET`. |
+| `RouteInformation::is_singular()` | `bool` | Returns `true` if the route targets a single resource. |
+| `RouteInformation::is_list()` | `bool` | Returns `true` if the route retrieves multiple resources. |
+| `RouteInformation::is_wp_rest_controller()` | `bool` | Returns `true` if the callback is a valid REST controller. |
+| `RouteInformation::get_wp_rest_controller()` | `WP_REST_Controller` | Returns the controller instance (throws an error if invalid). |
+
+## `MapRESTtoMCP` class
+
+The `MapRESTtoMCP` class is responsible for mapping WordPress REST API endpoints into MCP tools. It dynamically registers REST API routes as AI-callable tools in the MCP system.
+
+This class enables AI-driven automation by exposing WordPress REST API endpoints to AI services in WP-CLI.
+
+### Methods
+
+| Name | Return Type | Description |
+| --- | --- | --- |
+| `MapRESTtoMCP::args_to_schema()` | `array` | Converts REST API arguments into JSON Schema. |
+| `MapRESTtoMCP::sanitize_type()` | `string` | Maps REST API types to standardized types. |
+| `MapRESTtoMCP::map_rest_to_mcp()` | `void` | Registers REST API endpoints as AI tools in MCP. |
+| `MapRESTtoMCP::generate_description()` | `string` | Creates human-readable descriptions for API tools. |
+| `MapRESTtoMCP::rest_callable()` | `array` | Executes REST API calls and returns formatted data. |
