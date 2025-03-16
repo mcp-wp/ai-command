@@ -230,7 +230,8 @@ class AiCommand extends WP_CLI_Command {
 								'required'   => [ 'prompt' ],
 						],
 						'callable'    => function ( $params ) use ( $client ) {
-								return $client->get_image_from_ai_service( $params['prompt'] );
+
+							return  $client->get_image_from_ai_service( $params['prompt'] );
 						},
 				]
 		);
