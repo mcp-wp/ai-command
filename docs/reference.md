@@ -1,5 +1,14 @@
 # Reference
 
+## Table of Contents
+
+- [`AiCommand` class](#aicommand-class)
+- [`Client` class](#client-class)
+- [`Server` class](#server-class)
+- [`RouteInformation` class](#routeinformation-class)
+- [`MapRESTtoMCP` class](#mapresttomcp-class)
+
+
 ## `AiCommand` class
 
 ### Description
