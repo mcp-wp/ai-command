@@ -11,8 +11,6 @@
 
 ## `AiCommand` class
 
-### Description
-
 The `AiCommand` class extends `WP_CLI_Command` to integrate AI-powered automation into WordPress through WP-CLI. It enables users to interact with an AI model by:
 
 - Executing AI-driven prompts.
