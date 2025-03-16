@@ -21,9 +21,9 @@ This class follows an MCP client-server architecture, where:
 
 | Name | Description |
 | ---  | --- |
-| `AiCommand:__invoke( array $args, array $assoc_args )`  | <ul><li>Creates an AI server and client instance.</li><li>Registers tools & resources for AI processing.</li><li>Sends user input ($args[0]) to AI.</li><li>Outputs AI-generated results.</li></ul> |
-| `AiCommand:register_tools( Server $server, $client )`  | Registers functionality AI can invoke. See [available tools](tools.md). |
-| `AiCommand:register_resources( Server $server )`  | Registers structured datasets AI can access. See [available resources](). |
+| `AiCommand::__invoke()`  | <ul><li>Creates an AI server and client instance.</li><li>Registers tools & resources for AI processing.</li><li>Sends user input ($args[0]) to AI.</li><li>Outputs AI-generated results.</li></ul> |
+| `AiCommand::register_tools()`  | Registers functionality AI can invoke. See [available tools](tools.md). |
+| `AiCommand::register_resources()`  | Registers structured datasets AI can access. See [available resources](). |
 
 
 ## `Client` class
@@ -48,10 +48,13 @@ The service supports:
 
 | Name | Description |
 | ---  | --- |
-| `Client:__construct( Server $server )`  | Constructor |
-| `Client:send_request( string $method, array $params = [] )`  | Constructs a JSON-RPC request, sends it to the AI service, and decodes the response. |
-| `Client:__call( string $name, array $arguments )`  | A magic method to call any AI service method dynamically. |
-| `Client:list_resources()`  | Retrieves available AI-generated content. |
-| `Client:read_resource( string $uri )`  | Reads a specific AI-generated resource. |
+| `Client::__construct()`  | Constructor |
+| `Client::send_request()`  | Constructs a JSON-RPC request, sends it to the AI service, and decodes the response. |
+| `Client::__call()`  | A magic method to call any AI service method dynamically. |
+| `Client::list_resources()`  | Retrieves available AI-generated content. |
+| `Client::read_resource()`  | Reads a specific AI-generated resource. |
+| `Client::get_image_from_ai_service()`  | Calls an AI image generation service. Uses `AI_Capability::IMAGE_GENERATION` capibilities. Returns the image URL. |
+| `Client::call_ai_service_with_prompt()`  | Calls AI with a text prompt. |
+| `Client::call_ai_service()`  | AI function calls and processing. |
 
 ## `Server` class
