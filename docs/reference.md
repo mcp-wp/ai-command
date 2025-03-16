@@ -222,3 +222,22 @@ This class is useful for automated media uploads within WP-CLI or AI-powered wor
 | Name | Return Type | Description |
 | --- | --- | --- |
 | `MediaManager::upload_to_media_library( $media_path )` | `int` | Uploads a media file to WordPress and returns its attachment ID. |
+
+## `ImageTools` class
+
+The `ImageTools` class provides AI-powered image generation functionality within WP-CLI.
+It:
+
+- Integrates AI-based image generation tools.
+- Registers the tool in the system for easy access.
+- Uses a client to fetch AI-generated images.
+
+This class is used to dynamically generate images based on user prompts.
+
+### Methods
+
+| Name | Return Type | Description |
+| --- | --- | --- |
+| `ImageTools::__construct( $client )` | `void` | Initializes ImageTools with an AI client. |
+| `ImageTools::get_tools()` | `array` | Returns a list of available AI tools. |
+| `ImageTools::image_generation_tool()` | `Tool` | Creates an AI-powered image generation tool. |
