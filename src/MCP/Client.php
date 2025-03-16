@@ -161,9 +161,7 @@ class Client {
 
 
 
-		$contents = [
-			new Content( Content_Role::USER, $parts ),
-		];
+		$contents = new Content( Content_Role::USER, $parts );
 
 		try {
 
@@ -174,17 +172,16 @@ class Client {
 
 			$candidates = $service->get_model(
 				[
-					'feature'          => 'text-generation',
+					'feature'          => 'image-modification',
 					'model'            => $model,
 						'capabilities' => [
-							AI_Capability::MULTIMODAL_INPUT,
 							AI_Capability::TEXT_GENERATION,
 						],
 					'generationConfig' => Text_Generation_Config::from_array(
 						array(
 							'responseModalities' => array(
-								'Text',
-								'Image',
+								'TEXT',
+								'IMAGE',
 							),
 						)
 					),
