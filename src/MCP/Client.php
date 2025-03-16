@@ -110,6 +110,7 @@ class Client {
 					file_put_contents( $filename, $image_blob->get_binary_data() );
 
 					$image_url = $filename;
+					$image_id = \WP_CLI\AiCommand\MediaManager::upload_to_media_library($image_url);
 				}
 
 				break;
@@ -120,6 +121,8 @@ class Client {
 				// TODO: Save as file or so.
 				break;
 			}
+
+			return $image_id || 'no image found';
 		}
 
 		// See https://github.com/felixarntz/ai-services/blob/main/docs/Accessing-AI-Services-in-PHP.md for further processing.
