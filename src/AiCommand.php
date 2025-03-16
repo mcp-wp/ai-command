@@ -290,3 +290,4 @@ class AiCommand extends WP_CLI_Command {
 
 
 }
+}
