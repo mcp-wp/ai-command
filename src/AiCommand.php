@@ -2,6 +2,8 @@
 
 namespace WP_CLI\AiCommand;
 
+use WP_CLI\AiCommand\Tools\FileTools;
+use WP_CLI\AiCommand\Tools\URLTools;
 use WP_CLI;
 use WP_CLI_Command;
 use WP_CLI\Dispatcher;
@@ -22,6 +24,7 @@ use WP_Error;
  * Servers provide context, tools, and prompts to clients
  */
 class AiCommand extends WP_CLI_Command {
+
 	/**
 	 * Greets the world.
 	 *
@@ -88,83 +91,8 @@ class AiCommand extends WP_CLI_Command {
 			]
 		);
 
-		$server->register_tool(
-			[
-				'name'        => 'calculate_total',
-				'description' => 'Calculates the total price.',
-				'inputSchema' => [
-					'type'       => 'object',
-					'properties' => [
-						'price'    => [
-							'type'        => 'integer',
-							'description' => 'The price of the item.',
-						],
-						'quantity' => [
-							'type'        => 'integer',
-							'description' => 'The quantity of items.',
-						],
-					],
-					'required'   => [ 'price', 'quantity' ],
-				],
-				'callable'    => function ( $params ) {
-					$price    = $params['price'] ?? 0;
-					$quantity = $params['quantity'] ?? 1;
-
-					return $price * $quantity;
-				},
-			]
-		);
-
-
-
-		// Register tool to retrieve last N posts in JSON format.
-		$server->register_tool([
-			'name'        => 'list_posts',
-			'description' => 'Retrieves the last N posts.',
-			'inputSchema' => [
-				'type'       => 'object',
-				'properties' => [
-					'count' => [
-						'type'        => 'integer',
-						'description' => 'The number of posts to retrieve.',
-					],
-				],
-				'required'   => ['count'],
-			],
-			'callable'    => function ($params) {
-				$query = new \WP_Query([
-					'posts_per_page' => $params['count'],
-					'post_status'    => 'publish',
-				]);
-				$posts = [];
-				while ($query->have_posts()) {
-					$query->the_post();
-					$posts[] = ['title' => get_the_title(), 'content' => get_the_content()];
-				}
-				wp_reset_postdata();
-				return $posts;
-			},
-		]);
-
-		$server->register_tool(
-			[
-				'name'        => 'greet',
-				'description' => 'Greets the user.',
-				'inputSchema' => [
-					'type'       => 'object',
-					'properties' => [
-						'name' => [
-							'type'        => 'string',
-							'description' => 'The name of the user.',
-						],
-					],
-					'required'   => [ 'name' ],
-				],
-				'callable'    => function ( $params ) {
-					return 'Hello, ' . $params['name'] . '!';
-				},
-			]
-		);
+		$map_rest_to_mcp = new MapRESTtoMCP();
+		$map_rest_to_mcp->map_rest_to_mcp( $server );
 
 		$server->register_tool(
 			[
