@@ -107,9 +107,10 @@ class Client {
 					rename( $filename, $filename . '.' . $extension );
 					$filename .= '.' . $extension;
 
-					file_put_contents( $filename, $image_blob->get_binary_data() );
+					// file_put_contents( $filename, $image_blob->get_binary_data() );
 
 					$image_url = $filename;
+					$image_id = \WP_CLI\AiCommand\MediaManager::upload_to_media_library($image_url);
 				}
 
 				break;
@@ -120,6 +121,8 @@ class Client {
 				// TODO: Save as file or so.
 				break;
 			}
+
+			return $image_id || 'no image found';
 		}
 
 		// See https://github.com/felixarntz/ai-services/blob/main/docs/Accessing-AI-Services-in-PHP.md for further processing.
@@ -188,17 +191,17 @@ class Client {
 
 			\WP_CLI::debug( 'Making request...' . print_r( $contents, true ), 'ai' );
 
-			if ( $service->get_service_slug() === 'openai' ) {
-				$model = 'gpt-4o';
-			} else {
-				$model = 'gemini-2.0-flash';
-			}
+			// if ( $service->get_service_slug() === 'openai' ) {
+			// 	$model = 'gpt-4o';
+			// } else {
+			// 	$model = 'gemini-2.0-flash';
+			// }
 
 			$candidates = $service
 				->get_model(
 					[
 						'feature'          => 'text-generation',
-						'model'            => $model,
+						// 'model'            => $model,
 						                     'tools'        => $tools,
 							'capabilities' => [
 								AI_Capability::MULTIMODAL_INPUT,
@@ -227,9 +230,7 @@ class Client {
 				} elseif ( $part instanceof Function_Call_Part ) {
 					$function_result = $this->{$part->get_name()}( $part->get_args() );
 
-					// Capture the function name here
-					$function_name = $part->get_name();
-					echo "Output generated with the '$function_name' tool:\n"; // Log the function name
+					WP_CLI::debug( 'Calling Tool: ' . $part->get_name(), 'mcp_server' );
 
 					// Odd limitation of add_function_response_part().
 					if ( ! is_array( $function_result ) ) {

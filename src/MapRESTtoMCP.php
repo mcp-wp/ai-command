@@ -2,8 +2,8 @@
 
 namespace WP_CLI\AiCommand;
 
+use WP_CLI\AiCommand\Entity\Tool;
 use WP_CLI;
-use WP_CLI\AiCommand\MCP\Server;
 use WP_REST_Request;
 
 
@@ -75,9 +75,10 @@ class MapRESTtoMCP {
 
 	}
 
-	public function map_rest_to_mcp( Server $mcp_server ) {
+	public function map_rest_to_mcp() : array {
 		$server = rest_get_server();
 		$routes = $server->get_routes();
+		$tools = [];
 
 		foreach ( $routes as $route => $endpoints ) {
 			foreach ( $endpoints as $endpoint ) {
@@ -92,19 +93,21 @@ class MapRESTtoMCP {
 						continue;
 					}
 
-					$tool = [
+					$tool = new Tool( [
 						'name' => $information->get_sanitized_route_name(),
 						'description' => $this->generate_description( $information ),
 						'inputSchema' => $this->args_to_schema( $endpoint['args'] ),
 						'callable' => function ( $inputs ) use ( $route, $method_name, $server ){
 							return $this->rest_callable( $inputs, $route, $method_name, $server );
 						},
-					];
+					] );
 
-					$mcp_server->register_tool($tool);
+					$tools[] = $tool;
 				}
 			}
 		}
+
+		return $tools;
 	}
 
 	/**

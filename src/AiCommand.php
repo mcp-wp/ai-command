@@ -2,6 +2,7 @@
 
 namespace WP_CLI\AiCommand;
 
+use WP_CLI\AiCommand\ToolRepository\CollectionToolRepository;
 use WP_CLI\AiCommand\Tools\FileTools;
 use WP_CLI\AiCommand\Tools\URLTools;
 use WP_CLI;
@@ -22,6 +23,14 @@ use WP_Error;
  * Servers provide context, tools, and prompts to clients
  */
 class AiCommand extends WP_CLI_Command {
+
+	public function __construct(
+		private CollectionToolRepository $tools,
+		private WP_CLI\AiCommand\MCP\Server $server,
+		private WP_CLI\AiCommand\MCP\Client $client
+	) {
+		parent::__construct();
+	}
 
 	/**
 	 * Greets the world.
@@ -47,20 +56,25 @@ class AiCommand extends WP_CLI_Command {
 	 * @param array $assoc_args Associative array of associative arguments.
 	 */
 	public function __invoke( $args, $assoc_args ) {
-		$server = new MCP\Server();
-		$client = new MCP\Client($server);
+		$this->register_tools($this->server);
+		$this->register_resources($this->server);
 
-		$this->register_tools($server, $client);
-
-		$this->register_resources($server);
-
-		$result = $client->call_ai_service_with_prompt( $args[0] );
+		$result = $this->client->call_ai_service_with_prompt( $args[0] );
 
 		WP_CLI::success( $result );
 	}
 
 	// Register tools for AI processing
-	private function register_tools($server, $client) {
+	private function register_tools($server) : void {
+		$filters = apply_filters( 'wp_cli/ai_command/command/filters', [] );
+
+		foreach( $this->tools->find_all( $filters ) as $tool ) {
+			$server->register_tool( $tool->get_data() );
+		}
+
+		return;
+
+		// TODO move this
 		$server->register_tool(
 			[
 				'name'        => 'list_tools',
@@ -89,8 +103,10 @@ class AiCommand extends WP_CLI_Command {
 			]
 		);
 
-		$map_rest_to_mcp = new MapRESTtoMCP();
-		$map_rest_to_mcp->map_rest_to_mcp( $server );
+
+
+		new FileTools( $server );
+		new URLTools( $server );
 
 		$server->register_tool(
 			[
