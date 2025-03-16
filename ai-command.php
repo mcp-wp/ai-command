@@ -16,6 +16,9 @@ if ( file_exists( $ai_command_autoloader ) ) {
 }
 
 WP_CLI::add_command( 'ai', function ( $args, $assoc_args ) {
+	$server = new MCP\Server();
+	$client = new MCP\Client($server);
+
 	$tools = new ToolCollection();
 
 	// TODO Register your tool here and add it to the collection
@@ -34,6 +37,10 @@ WP_CLI::add_command( 'ai', function ( $args, $assoc_args ) {
 		$tools->add( $tool );
 	}
 
-	$ai_command = new AiCommand( new CollectionToolRepository( $tools ) );
+	$ai_command = new AiCommand(
+		new CollectionToolRepository( $tools ),
+		$server,
+		$client
+	);
 	$ai_command( $args, $assoc_args );
 } );
