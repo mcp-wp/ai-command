@@ -293,31 +293,31 @@ class Client {
 
 			\WP_CLI::debug( 'Making request...' . print_r( $contents, true ), 'ai' );
 
-			if ( $service->get_service_slug() === 'openai' ) {
-				$model = 'gpt-4o';
-			} else {
-				$model = 'gemini-2.0-flash-exp';
-			}
+			// if ( $service->get_service_slug() === 'openai' ) {
+			// 	$model = 'gpt-4o';
+			// } else {
+			// 	$model = 'gemini-2.0-flash-exp';
+			// }
 
 			$candidates = $service
 				->get_model(
 					[
 						'feature'          => 'text-generation',
-						'model'            => $model,
+						// 'model'            => $model,
 						'tools'            => $tools,
 						'capabilities'     => [
 							AI_Capability::MULTIMODAL_INPUT,
 							AI_Capability::TEXT_GENERATION,
 							AI_Capability::FUNCTION_CALLING,
 						],
-						'generationConfig' => Text_Generation_Config::from_array(
-							array(
-								'responseModalities' => array(
-									'Text',
-									'Image',
-								),
-							)
-						),
+						// 'generationConfig' => Text_Generation_Config::from_array(
+						// 	array(
+						// 		'responseModalities' => array(
+						// 			'Text',
+						// 			'Image',
+						// 		),
+						// 	)
+						// ),
 					]
 				)
 				->generate_text( $contents );

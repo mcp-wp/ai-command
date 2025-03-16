@@ -347,6 +347,7 @@ class AiCommand extends WP_CLI_Command {
 					'required'   => [ 'prompt', 'media_id' ],
 				],
 				'callable'    => function ( $params ) use ( $client, $server ) {
+					\WP_CLI::log('modifying image ____ logging ___');
 					$media_uri      = 'media://' . $params['media_id'];
 					$media_resource = $server->get_resource_data( $media_uri );
 					return $client->modify_image_with_ai( $params['prompt'], $media_resource );
