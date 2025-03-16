@@ -92,9 +92,6 @@ class AiCommand extends WP_CLI_Command {
 		$map_rest_to_mcp = new MapRESTtoMCP();
 		$map_rest_to_mcp->map_rest_to_mcp( $server );
 
-		new FileTools( $server );
-		new URLTools( $server );
-
 		$server->register_tool(
 			[
 				'name'        => 'generate_image',
