@@ -207,3 +207,18 @@ This enables seamless AI-driven interactions with the WordPress REST API.
 | `MapRESTtoMCP::generate_description( $info )` | `string` | Creates human-readable descriptions for API routes. |
 | `MapRESTtoMCP::rest_callable( $inputs, $route, $method_name, $server )` | `array` | Executes a REST API call dynamically. |
 
+## `MediaManager` class
+
+The `MediaManager` class provides a static method to upload a media file to the WordPress Media Library. It:
+
+- Copies a file into the WordPress uploads directory.
+- Registers the file as a WordPress media attachment.
+- Generates and updates attachment metadata.
+
+This class is useful for automated media uploads within WP-CLI or AI-powered workflows.
+
+### Methods
+
+| Name | Return Type | Description |
+| --- | --- | --- |
+| `MediaManager::upload_to_media_library( $media_path )` | `int` | Uploads a media file to WordPress and returns its attachment ID. |
