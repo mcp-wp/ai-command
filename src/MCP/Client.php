@@ -111,7 +111,8 @@ class Client {
 					file_put_contents( $filename, $image_blob->get_binary_data() );
 
 					$image_url = $filename;
-					\WP_CLI\AiCommand\MediaManager::upload_to_media_library($filename);
+					$image_id = \WP_CLI\AiCommand\MediaManager::upload_to_media_library($filename);
+					\WP_CLI::success('image generated with id: '  . $image_id);
 				}
 
 				break;
@@ -128,7 +129,7 @@ class Client {
 
 		WP_CLI::debug( "Generated image: $image_url", 'ai' );
 
-		return $image_url;
+		return $image_id;
 	}
 
 	public function modify_image_with_ai($prompt, $media_element) {
@@ -227,7 +228,8 @@ class Client {
 
 						$image_url = $filename;
 
-						\WP_CLI\AiCommand\MediaManager::upload_to_media_library($filename);
+						$image_id = \WP_CLI\AiCommand\MediaManager::upload_to_media_library($filename);
+						\WP_CLI::success('image generated with id: '  . $image_id);
 					}
 				}
 
@@ -235,6 +237,8 @@ class Client {
 				break;
 			}
 		}
+
+		return $image_id || false;
 
 	}
 
