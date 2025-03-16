@@ -7,6 +7,8 @@
 - [`Server` class](#server-class)
 - [`RouteInformation` class](#routeinformation-class)
 - [`MapRESTtoMCP` class](#mapresttomcp-class)
+- [`MediaManager` class](#mediamanager-class)
+- [`ImageTools` class](#imagetools-class)
 
 
 ## `AiCommand` class
