@@ -58,3 +58,68 @@ The service supports:
 | `Client::call_ai_service()`  | AI function calls and processing. |
 
 ## `Server` class
+
+The Server class serves as the core backend for the AI Command's MCP (Multi-Client Processor) in WP-CLI. It provides:
+
+- Tool Registration - Defines AI-callable functions (e.g., calculations, event fetching).
+- Resource Management - Stores and retrieves structured data (e.g., users, products).
+- JSON-RPC Request Handling - Processes incoming requests and returns AI-usable responses.
+- Validation & Error Handling - Ensures correct data formats and secure execution.
+
+This class acts as the server component in the MCP architecture, interfacing with AI clients to process requests. It follows a JSON-RPC 2.0 protocol, ensuring a standardized communication format.
+
+### Properties
+
+| Name | Visibility modifier | Description |
+| ---  | --- | --- |
+| `$data`  | private | Stores structured data (e.g., users, products). |
+| `$tools`  | private | Registered AI-callable tools (functions AI can invoke). |
+| `$resources`  | private | Registered data resources accessible to AI. |
+
+### Methods
+
+| Name | Description |
+| ---  | --- |
+| `Server::__construct()`  | Constructor. Initializes sample user and product data. These datasets are accessible via JSON-RPC requests. |
+| `Server::register_tool()`  | Registers AI-callable functions (`tools`). Each tool must include identifier (`name`) and function to execute (`callable`); `description` and `inputSchema` are optional. |
+| `Server::register_resource()`  | Registers structured data for AI access. |
+| `Server::get_capabilities()`  | Retrives server capabilities and returns the list of available tools and resources. Used by AI clients to understand what functions and data are accessible. |
+| `Server::handle_request()`  | Parses JSON-RPC 2.0 requests. Validates structure and executes method calls. |
+| `Server::process_method_call()`  | Determines whether the request is for fetching capabilities (`get_capabilities`), accessing data (`get_users`, `get_products`), or executing a tool (`calculate_total`, `greet`, etc.) |
+| `Server::handle_data_request()`  | Extracts requested resource and returns structured data. |
+| `Server::execute_tool()`  | Calls registered AI tools and validates input against schema. |
+| `Server::create_success_response()`  | Generates JSON-RPC success response. |
+| `Server::create_error_response()`  | Generates JSON-RPC error response. |
+
+### Examples
+
+Register a Tool
+
+```PHP
+$server->register_tool(
+	[
+		'name'     => 'calculate_total',
+		'callable' => function( $params ) {
+			return $params['price'] * $params['quantity'];
+		},
+		'inputSchema' => [
+			'properties' => [
+				'price'    => [ 'type' => 'integer' ],
+				'quantity' => [ 'type' => 'integer' ]
+			],
+		],
+	]
+);
+```
+
+Register a Resource
+
+```PHP
+$server->register_resource([
+	'name'        => 'product_catalog',
+	'uri'         => 'file://./products.json',
+	'description' => 'Product catalog',
+	'mimeType'    => 'application/json',
+	'filePath'    => './products.json'
+]);
+```
