@@ -4,15 +4,8 @@ namespace WP_CLI\AiCommand\Tools;
 
 class FileTools {
 
-    private $server;
-
 	public function __construct( $server ) {
-        $this->server = $server;
-        $this->register_tools();
-	}
-
-    public function register_tools() {
-		$this->server->register_tool(
+		$server->register_tool(
 			[
 				'name'        => 'write_file',
 				'description' => 'Writes a file.',
@@ -38,7 +31,7 @@ class FileTools {
 			]
 		);
 
-		$this->server->register_tool(
+		$server->register_tool(
 			[
 				'name'        => 'delete_file',
 				'description' => 'Deletes a file.',
@@ -59,7 +52,7 @@ class FileTools {
 			]
 		);
 
-		$this->server->register_tool(
+		$server->register_tool(
 			[
 				'name'        => 'read_file',
 				'description' => 'Reads a file.',
@@ -80,7 +73,7 @@ class FileTools {
 			]
 		);
 
-		$this->server->register_tool(
+		$server->register_tool(
 			[
 				'name'        => 'move_file',
 				'description' => 'Moves a file.',
@@ -106,7 +99,7 @@ class FileTools {
 			]
 		);
 
-		$this->server->register_tool(
+		$server->register_tool(
 			[
 				'name'        => 'list_files',
 				'description' => 'Lists files in a directory.',

@@ -78,10 +78,25 @@ class RouteInformation
 		return ! $this->is_singular();
 	}
 
+	public function get_scope(): string
+	{
+		if ( ! $this->is_wp_rest_controller()) {
+			return 'default';
+		}
+
+		$context = [
+			WP_REST_Posts_Controller::class      => 'post',
+			WP_REST_Users_Controller::class      => 'user',
+			WP_REST_Taxonomies_Controller::class => 'taxonomy',
+		];
+
+		return $context[get_class($this->get_wp_rest_controller())];
+	}
+
 	public function is_wp_rest_controller(): bool
 	{
 		// The callback form for a WP_REST_Controller is [ WP_REST_Controller, method ]
-		if ( ! is_array( $this->callback ) ) {
+		if ( ! is_array($this->callback)) {
 			return false;
 		}
 

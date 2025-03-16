@@ -4,15 +4,8 @@ namespace WP_CLI\AiCommand\Tools;
 
 class URLTools {
 
-    private $server;
-
 	public function __construct( $server ) {
-        $this->server = $server;
-        $this->register_tools();
-	}
-
-    public function register_tools() {
-		$this->server->register_tool(
+		$server->register_tool(
 			[
 				'name'        => 'retrieve_page',
 				'description' => 'Retrieves a page from the web.',
@@ -35,7 +28,7 @@ class URLTools {
 			]
 		);
 
-		$this->server->register_tool(
+		$server->register_tool(
 			[
 				'name'        => 'retrieve_rss_feed',
 				'description' => 'Retrieves an RSS feed.',
