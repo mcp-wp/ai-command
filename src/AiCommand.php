@@ -117,12 +117,40 @@ class AiCommand extends WP_CLI_Command {
 					],
 					'required'   => [ 'prompt' ],
 				],
-				'callable'    => function ( $params ) use ( $client ) {
+				'callable'    => function ( $params ) use ( $client) {
 					return $client->get_image_from_ai_service( $params['prompt'] );
 				},
 			]
 		);
+
+		$server->register_tool(
+			[
+				'name'        => 'modify_image',
+				'description' => 'Modifies an image with a given image id and prompt.',
+				'inputSchema' => [
+					'type'       => 'object',
+					'properties' => [
+						'prompt' => [
+							'type'        => 'string',
+							'description' => 'The prompt for generating the image.',
+						],
+						'media_id' => [
+							'type' => "integer",
+							'description' => "the id of the media element"
+						]
+					],
+					'required'   => [ 'prompt', 'media_id' ],
+				],
+				'callable'    => function ( $params ) use ( $client, $server ) {
+					$media_uri = "media://" . $params['media_id'];
+					$media_resource = $server->get_resource_data($media_uri);
+					return $client->modify_image_with_ai( $params['prompt'], $media_resource );
+				},
+			]
+		);
 	}
+
+
 
 	// Register resources for AI access
 	private function register_resources($server) {
@@ -210,5 +238,5 @@ class AiCommand extends WP_CLI_Command {
 			}
 		] );
 
-
+		}
 }

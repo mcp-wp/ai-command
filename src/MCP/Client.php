@@ -6,12 +6,14 @@ use Exception;
 use Felix_Arntz\AI_Services\Services\API\Enums\AI_Capability;
 use Felix_Arntz\AI_Services\Services\API\Enums\Content_Role;
 use Felix_Arntz\AI_Services\Services\API\Helpers;
+use Felix_Arntz\AI_Services\Services\API\Types\Blob;
 use Felix_Arntz\AI_Services\Services\API\Types\Content;
 use Felix_Arntz\AI_Services\Services\API\Types\Parts;
 use Felix_Arntz\AI_Services\Services\API\Types\Parts\File_Data_Part;
 use Felix_Arntz\AI_Services\Services\API\Types\Parts\Function_Call_Part;
 use Felix_Arntz\AI_Services\Services\API\Types\Parts\Inline_Data_Part;
 use Felix_Arntz\AI_Services\Services\API\Types\Parts\Text_Part;
+use Felix_Arntz\AI_Services\Services\API\Types\Text_Generation_Config;
 use Felix_Arntz\AI_Services\Services\API\Types\Tools;
 use WP_CLI;
 
@@ -127,6 +129,117 @@ class Client {
 		return $image_url;
 	}
 
+
+	public function modify_image_with_ai($prompt, $media_element) {
+
+		$mime_type = $media_element['mime_type'];
+		$image_path = $media_element['filepath'];
+		$image_contents = file_get_contents($image_path);
+		$image_blob = Helpers::blob_to_base64_data_url( new Blob( $image_contents, $mime_type ));
+
+
+		// See https://github.com/felixarntz/ai-services/issues/25.
+		add_filter(
+			'map_meta_cap',
+			static function () {
+				return [ 'exist' ];
+			}
+		);
+
+		$service    = ai_services()->get_available_service(
+			'google'
+		);
+
+
+
+		$model = 'gemini-2.0-flash-exp';
+
+		$parts = new Parts();
+
+		$parts->add_text_part($prompt);
+		$parts->add_file_data_part($mime_type, $image_blob);
+
+
+
+		$contents = [
+			new Content( Content_Role::USER, $parts ),
+		];
+
+		try {
+
+
+			$service    = ai_services()->get_available_service(
+				'google'
+			);
+
+			$candidates = $service->get_model(
+				[
+					'feature'          => 'text-generation',
+					'model'            => $model,
+						'capabilities' => [
+							AI_Capability::MULTIMODAL_INPUT,
+							AI_Capability::TEXT_GENERATION,
+						],
+					'generationConfig' => Text_Generation_Config::from_array(
+						array(
+							'responseModalities' => array(
+								'Text',
+								'Image',
+							),
+						)
+					),
+				]
+			)
+			->generate_text( $contents );
+
+		} catch ( Exception $e ) {
+			\WP_CLI\AiCommand\tome_custom_log('$error');
+			\WP_CLI\AiCommand\tome_custom_log($e);
+			WP_CLI::error( $e->getMessage() );
+		}
+
+
+
+		$image_url = '';
+		foreach ( $candidates->get( 0 )->get_content()->get_parts() as $part ) {
+			if ( $part instanceof Inline_Data_Part ) {
+				$image_url  = $part->get_base64_data(); // Data URL.
+				$image_blob = Helpers::base64_data_url_to_blob( $image_url );
+
+				if ( $image_blob ) {
+					$filename  = tempnam( '/tmp', 'ai-generated-image' );
+					$parts     = explode( '/', $part->get_mime_type() );
+					$extension = $parts[1];
+					rename( $filename, $filename . '.' . $extension );
+					$filename .= '.' . $extension;
+
+					file_put_contents( $filename, $image_blob->get_binary_data() );
+
+					$image_url = $filename;
+				} else {
+					$binary_data = base64_decode( $image_url );
+					if ( false !== $binary_data ) {
+						$image_blob = new Blob( $binary_data, $part->get_mime_type() );
+
+						$filename  = tempnam( '/tmp', 'ai-generated-image' );
+						$parts     = explode( '/', $part->get_mime_type() );
+						$extension = $parts[1];
+						rename( $filename, $filename . '.' . $extension );
+						$filename .= '.' . $extension;
+
+						file_put_contents( $filename, $image_blob->get_binary_data() );
+
+						$image_url = $filename;
+					}
+				}
+
+				$text .= "Generated image: $image_url\n";
+				break;
+			}
+		}
+
+	}
+
 	public function call_ai_service_with_prompt( string $prompt ) {
 		$parts = new Parts();
 		$parts->add_text_part( $prompt );
@@ -172,19 +285,19 @@ class Client {
 				]
 			);
 
-		  \WP_CLI::debug( 'Making request...' . print_r( $contents, true ), 'ai' );
+			\WP_CLI::debug( 'Making request...' . print_r( $contents, true ), 'ai' );
 
-			if ( $service->get_service_slug() === 'openai' ) {
-				$model = 'gpt-4o';
-			} else {
-				$model = 'gemini-2.0-flash';
-			}
+			// if ( $service->get_service_slug() === 'openai' ) {
+			// 	$model = 'gpt-4o';
+			// } else {
+			// 	$model = 'gemini-2.0-flash-exp';
+			// }
 
 			$candidates = $service
 				->get_model(
 					[
 						'feature'      => 'text-generation',
-						'model'        => $model,
+						// 'model'        => $model,
 						'tools'        => $tools,
 						'capabilities' => [
 							AI_Capability::MULTIMODAL_INPUT,
