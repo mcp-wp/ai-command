@@ -92,44 +92,6 @@ class AiCommand extends WP_CLI_Command {
 
 		$server->register_tool(
 			[
-				'name' => 'create_post',
-				'description' => 'Creates a post.',
-				'inputSchema' => [
-					'type' => 'object',
-					'properties' => [
-						'title' => [
-							'type' => 'string',
-							'description' => 'The title of the post.',
-						],
-						'content' => [
-							'type' => 'string',
-							'description' => 'The content of the post.',
-						],
-						'category' => [
-							'type' => 'string',
-							'description' => 'The category of the post.',
-						],
-					],
-					'required' => [ 'title', 'content' ],
-				],
-				'callable' => function ( $params ) {
-					$request = new \WP_REST_Request( 'POST', '/wp/v2/posts' );
-					$request->set_body_params( [
-						'title'      => $params['title'],
-						'content'    => $params['content'],
-						'categories' => [ $params['category'] ],
-						'status'     => 'publish',
-					] );
-					$controller = new \WP_REST_Posts_Controller( 'post' );
-					$response   = $controller->create_item( $request );
-					$data       = $response->get_data();
-					return $data;
-				},
-			]
-		);
-
-		$server->register_tool(
-			[
 				'name'        => 'calculate_total',
 				'description' => 'Calculates the total price.',
 				'inputSchema' => [
@@ -154,77 +116,6 @@ class AiCommand extends WP_CLI_Command {
 				},
 			]
 		);
-
-
-
-		// Register tool to retrieve last N posts in JSON format.
-		$server->register_tool([
-			'name'        => 'list_posts',
-			'description' => 'Retrieves the last N posts.',
-			'inputSchema' => [
-				'type'       => 'object',
-				'properties' => [
-					'count' => [
-						'type'        => 'integer',
-						'description' => 'The number of posts to retrieve.',
-					],
-				],
-				'required'   => ['count'],
-			],
-			'callable'    => function ($params) {
-				$query = new \WP_Query([
-					'posts_per_page' => $params['count'],
-					'post_status'    => 'publish',
-				]);
-				$posts = [];
-				while ($query->have_posts()) {
-					$query->the_post();
-					$posts[] = ['title' => get_the_title(), 'content' => get_the_content()];
-				}
-				wp_reset_postdata();
-				return $posts;
-			},
-		]);
-
-		$server->register_tool(
-			[
-				'name'        => 'greet',
-				'description' => 'Greets the user.',
-				'inputSchema' => [
-					'type'       => 'object',
-					'properties' => [
-						'name' => [
-							'type'        => 'string',
-							'description' => 'The name of the user.',
-						],
-					],
-					'required'   => [ 'name' ],
-				],
-				'callable'    => function ( $params ) {
-					return 'Hello, ' . $params['name'] . '!';
-				},
-			]
-		);
-
-//			$server->register_tool(
-//				[
-//					'name'        => 'generate_image',
-//					'description' => 'Generates an image.',
-//					'inputSchema' => [
-//						'type'       => 'object',
-//						'properties' => [
-//							'prompt' => [
-//								'type'        => 'string',
-//								'description' => 'The prompt for generating the image.',
-//							],
-//						],
-//						'required'   => [ 'prompt' ],
-//					],
-//					'callable'    => function ( $params ) use ( $client ) {
-//						return $client->get_image_from_ai_service( $params['prompt'] );
-//					},
-//				]
-//			);
 
 		$server->register_tool(
 			[
