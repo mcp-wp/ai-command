@@ -2,6 +2,8 @@
 
 namespace WP_CLI\AiCommand;
 
+use WP_CLI\AiCommand\Tools\FileTools;
+use WP_CLI\AiCommand\Tools\URLTools;
 use WP_CLI;
 use WP_CLI_Command;
 use WP_Community_Events;
@@ -20,6 +22,7 @@ use WP_Error;
  * Servers provide context, tools, and prompts to clients
  */
 class AiCommand extends WP_CLI_Command {
+
 	/**
 	 * Greets the world.
 	 *
@@ -60,50 +63,34 @@ class AiCommand extends WP_CLI_Command {
 	private function register_tools($server, $client) {
 		$server->register_tool(
 			[
-				'name'        => 'calculate_total',
-				'description' => 'Calculates the total price.',
+				'name'        => 'list_tools',
+				'description' => 'Lists all available tools with their descriptions.',
 				'inputSchema' => [
-					'type'       => 'object',
-					'properties' => [
-						'price'    => [
-							'type'        => 'integer',
-							'description' => 'The price of the item.',
+						'type'       => 'object', // Object type for input
+						'properties' => [
+							'placeholder'    => [
+								'type'        => 'integer',
+								'description' => '',
+							]
 						],
-						'quantity' => [
-							'type'        => 'integer',
-							'description' => 'The quantity of items.',
-						],
-					],
-					'required'   => [ 'price', 'quantity' ],
+						'required'   => [],       // No required fields
 				],
-				'callable'    => function ( $params ) {
-					$price    = $params['price'] ?? 0;
-					$quantity = $params['quantity'] ?? 1;
+				'callable'    => function () use ($server) {
+						// Get all capabilities
+						$capabilities = $server->get_capabilities();
 
-					return $price * $quantity;
+						// Prepare a list of tools with their descriptions
+						$tool_list = 'Return this to the user as a bullet list with each tool name and description on a new line. \n\n';
+            $tool_list .= print_r($capabilities['methods'], true);
+
+						// Return the formatted string of tools with descriptions
+						return $tool_list;
 				},
 			]
 		);
 
-		$server->register_tool(
-			[
-				'name'        => 'greet',
-				'description' => 'Greets the user.',
-				'inputSchema' => [
-					'type'       => 'object',
-					'properties' => [
-						'name' => [
-							'type'        => 'string',
-							'description' => 'The name of the user.',
-						],
-					],
-					'required'   => [ 'name' ],
-				],
-				'callable'    => function ( $params ) {
-					return 'Hello, ' . $params['name'] . '!';
-				},
-			]
-		);
+		$map_rest_to_mcp = new MapRESTtoMCP();
+		$map_rest_to_mcp->map_rest_to_mcp( $server );
 
 		$server->register_tool(
 			[
@@ -213,7 +200,6 @@ class AiCommand extends WP_CLI_Command {
 					},
 			]
 		);
-
 	}
 
 	// Register resources for AI access
