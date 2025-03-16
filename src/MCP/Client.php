@@ -190,8 +190,6 @@ class Client {
 			->generate_text( $contents );
 
 		} catch ( Exception $e ) {
-			\WP_CLI\AiCommand\tome_custom_log('$error');
-			\WP_CLI\AiCommand\tome_custom_log($e);
 			WP_CLI::error( $e->getMessage() );
 		}
 
