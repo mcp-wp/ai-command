@@ -214,10 +214,9 @@ class Server {
 	public function get_resource_data( $mcp_resource ) {
 
 		// return the resource element based on the path
-		if(str_starts_with($mcp_resource, 'media://')) {
-			return $this->get_media_data($mcp_resource);
+		if ( str_starts_with( $mcp_resource, 'media://' ) ) {
+			return $this->get_media_data( $mcp_resource );
 		}
-
 
 		// Example: If the resource is a file, read the file contents.
 		if ( isset( $mcp_resource['filePath'] ) ) {
@@ -235,9 +234,9 @@ class Server {
 	}
 
 
-	private function get_media_data($mcp_resource) {
-		foreach($this->resources as $resource) {
-			if($resource['uri'] === $mcp_resource) {
+	private function get_media_data( $mcp_resource ) {
+		foreach ( $this->resources as $resource ) {
+			if ( $resource['uri'] === $mcp_resource ) {
 					$callback_response = $resource['callable']();
 					return $callback_response;
 			}

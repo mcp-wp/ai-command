@@ -2,6 +2,8 @@
 
 namespace WP_CLI\AiCommand;
 
+use Felix_Arntz\AI_Services\Services\API\Helpers;
+use Felix_Arntz\AI_Services\Services\API\Types\Blob;
 use WP_CLI;
 use WP_CLI_Command;
 use WP_Community_Events;
@@ -64,22 +66,22 @@ class AiCommand extends WP_CLI_Command {
 				'name'        => 'list_tools',
 				'description' => 'Lists all available tools with their descriptions.',
 				'inputSchema' => [
-						'type'       => 'object', // Object type for input
-						'properties' => [
-							'placeholder'    => [
-								'type'        => 'integer',
-								'description' => '',
-							]
+					'type'       => 'object', // Object type for input
+					'properties' => [
+						'placeholder' => [
+							'type'        => 'integer',
+							'description' => '',
 						],
-						'required'   => [],       // No required fields
+					],
+					'required'   => [],       // No required fields
 				],
-				'callable'    => function () use ($server) {
+				'callable'    => function () use ( $server ) {
 						// Get all capabilities
 						$capabilities = $server->get_capabilities();
 
 						// Prepare a list of tools with their descriptions
 						$tool_list = 'Return this to the user as a bullet list with each tool name and description on a new line. \n\n';
-            $tool_list .= print_r($capabilities['methods'], true);
+					$tool_list    .= print_r( $capabilities['methods'], true );
 
 						// Return the formatted string of tools with descriptions
 						return $tool_list;
@@ -92,34 +94,36 @@ class AiCommand extends WP_CLI_Command {
 
 		$server->register_tool(
 			[
-				'name' => 'create_post',
+				'name'        => 'create_post',
 				'description' => 'Creates a post.',
 				'inputSchema' => [
-					'type' => 'object',
+					'type'       => 'object',
 					'properties' => [
-						'title' => [
-							'type' => 'string',
+						'title'    => [
+							'type'        => 'string',
 							'description' => 'The title of the post.',
 						],
-						'content' => [
-							'type' => 'string',
+						'content'  => [
+							'type'        => 'string',
 							'description' => 'The content of the post.',
 						],
 						'category' => [
-							'type' => 'string',
+							'type'        => 'string',
 							'description' => 'The category of the post.',
 						],
 					],
-					'required' => [ 'title', 'content' ],
+					'required'   => [ 'title', 'content' ],
 				],
-				'callable' => function ( $params ) {
+				'callable'    => function ( $params ) {
 					$request = new \WP_REST_Request( 'POST', '/wp/v2/posts' );
-					$request->set_body_params( [
-						'title'      => $params['title'],
-						'content'    => $params['content'],
-						'categories' => [ $params['category'] ],
-						'status'     => 'publish',
-					] );
+					$request->set_body_params(
+						[
+							'title'      => $params['title'],
+							'content'    => $params['content'],
+							'categories' => [ $params['category'] ],
+							'status'     => 'publish',
+						]
+					);
 					$controller = new \WP_REST_Posts_Controller( 'post' );
 					$response   = $controller->create_item( $request );
 					$data       = $response->get_data();
@@ -155,36 +159,41 @@ class AiCommand extends WP_CLI_Command {
 			]
 		);
 
-
-
 		// Register tool to retrieve last N posts in JSON format.
-		$server->register_tool([
-			'name'        => 'list_posts',
-			'description' => 'Retrieves the last N posts.',
-			'inputSchema' => [
-				'type'       => 'object',
-				'properties' => [
-					'count' => [
-						'type'        => 'integer',
-						'description' => 'The number of posts to retrieve.',
+		$server->register_tool(
+			[
+				'name'        => 'list_posts',
+				'description' => 'Retrieves the last N posts.',
+				'inputSchema' => [
+					'type'       => 'object',
+					'properties' => [
+						'count' => [
+							'type'        => 'integer',
+							'description' => 'The number of posts to retrieve.',
+						],
 					],
+					'required'   => [ 'count' ],
 				],
-				'required'   => ['count'],
-			],
-			'callable'    => function ($params) {
-				$query = new \WP_Query([
-					'posts_per_page' => $params['count'],
-					'post_status'    => 'publish',
-				]);
-				$posts = [];
-				while ($query->have_posts()) {
-					$query->the_post();
-					$posts[] = ['title' => get_the_title(), 'content' => get_the_content()];
-				}
-				wp_reset_postdata();
-				return $posts;
-			},
-		]);
+				'callable'    => function ( $params ) {
+					$query = new \WP_Query(
+						[
+							'posts_per_page' => $params['count'],
+							'post_status'    => 'publish',
+						]
+					);
+					$posts = [];
+					while ( $query->have_posts() ) {
+						$query->the_post();
+						$posts[] = [
+							'title'   => get_the_title(),
+							'content' => get_the_content(),
+						];
+					}
+					wp_reset_postdata();
+					return $posts;
+				},
+			]
+		);
 
 		$server->register_tool(
 			[
@@ -206,25 +215,25 @@ class AiCommand extends WP_CLI_Command {
 			]
 		);
 
-//			$server->register_tool(
-//				[
-//					'name'        => 'generate_image',
-//					'description' => 'Generates an image.',
-//					'inputSchema' => [
-//						'type'       => 'object',
-//						'properties' => [
-//							'prompt' => [
-//								'type'        => 'string',
-//								'description' => 'The prompt for generating the image.',
-//							],
-//						],
-//						'required'   => [ 'prompt' ],
-//					],
-//					'callable'    => function ( $params ) use ( $client ) {
-//						return $client->get_image_from_ai_service( $params['prompt'] );
-//					},
-//				]
-//			);
+		//          $server->register_tool(
+		//              [
+		//                  'name'        => 'generate_image',
+		//                  'description' => 'Generates an image.',
+		//                  'inputSchema' => [
+		//                      'type'       => 'object',
+		//                      'properties' => [
+		//                          'prompt' => [
+		//                              'type'        => 'string',
+		//                              'description' => 'The prompt for generating the image.',
+		//                          ],
+		//                      ],
+		//                      'required'   => [ 'prompt' ],
+		//                  ],
+		//                  'callable'    => function ( $params ) use ( $client ) {
+		//                      return $client->get_image_from_ai_service( $params['prompt'] );
+		//                  },
+		//              ]
+		//          );
 
 		$server->register_tool(
 			[
@@ -241,7 +250,7 @@ class AiCommand extends WP_CLI_Command {
 					'required'   => [ 'location' ],  // We only require the location
 				],
 
-				'callable'    => function ( $params ) use ( $client) {
+				'callable'    => function ( $params ) use ( $client ) {
 					// Default user ID is 0
 					$user_id = 0;
 
@@ -326,27 +335,25 @@ class AiCommand extends WP_CLI_Command {
 				'inputSchema' => [
 					'type'       => 'object',
 					'properties' => [
-						'prompt' => [
+						'prompt'   => [
 							'type'        => 'string',
 							'description' => 'The prompt for generating the image.',
 						],
 						'media_id' => [
-							'type' => "integer",
-							'description' => "the id of the media element"
-						]
+							'type'        => 'integer',
+							'description' => 'the id of the media element',
+						],
 					],
 					'required'   => [ 'prompt', 'media_id' ],
 				],
 				'callable'    => function ( $params ) use ( $client, $server ) {
-					$media_uri = "media://" . $params['media_id'];
-					$media_resource = $server->get_resource_data($media_uri);
+					$media_uri      = 'media://' . $params['media_id'];
+					$media_resource = $server->get_resource_data( $media_uri );
 					return $client->modify_image_with_ai( $params['prompt'], $media_resource );
 				},
 			]
 		);
 	}
-
-
 
 	// Register resources for AI access
 	private function register_resources( $server ) {
@@ -372,7 +379,7 @@ class AiCommand extends WP_CLI_Command {
 			]
 		);
 
-		$this->register_media_resources($server);
+		$this->register_media_resources( $server );
 	}
 
 	protected function register_media_resources( $server ) {
@@ -392,51 +399,54 @@ class AiCommand extends WP_CLI_Command {
 			$media_type  = get_post_mime_type( $media_id );
 			$media_title = get_the_title( $media_id );
 
-			$server->register_resource( [
-				'name'        => 'media_' . $media_id,
-				'uri'         => 'media://' . $media_id,
-				'description' => $media_title,
-				'mimeType'    => $media_type,
-				'callable'    => function () use ( $media_id, $media_url, $media_type ) {
-					$data = [
-						'id'          => $media_id,
-						'url'         => $media_url,
-						'filepath'    => get_attached_file( $media_id ),
-						'alt'         => get_post_meta( $media_id, '_wp_attachment_image_alt', true ),
-						'mime_type'   => $media_type,
-						'metadata'    => wp_get_attachment_metadata( $media_id ),
-					];
+			$server->register_resource(
+				[
+					'name'        => 'media_' . $media_id,
+					'uri'         => 'media://' . $media_id,
+					'description' => $media_title,
+					'mimeType'    => $media_type,
+					'callable'    => function () use ( $media_id, $media_url, $media_type ) {
+						$data = [
+							'id'        => $media_id,
+							'url'       => $media_url,
+							'filepath'  => get_attached_file( $media_id ),
+							'alt'       => get_post_meta( $media_id, '_wp_attachment_image_alt', true ),
+							'mime_type' => $media_type,
+							'metadata'  => wp_get_attachment_metadata( $media_id ),
+						];
 
-					return $data;
-				}
-			] );
+						return $data;
+					},
+				]
+			);
 		}
 
 		// Also register a media collection resource
-		$server->register_resource( [
-			'name'        => 'media_collection',
-			'uri'         => 'data://media',
-			'description' => 'Collection of all media items',
-			'mimeType'    => 'application/json',
-			'callable'    => function () {
+		$server->register_resource(
+			[
+				'name'        => 'media_collection',
+				'uri'         => 'data://media',
+				'description' => 'Collection of all media items',
+				'mimeType'    => 'application/json',
+				'callable'    => function () {
 
-				$args = array(
-					'post_type'      => 'attachment',
-					'post_status'    => 'inherit',
-					'posts_per_page' => - 1,
-					'fields'         => 'ids',
-				);
+					$args = array(
+						'post_type'      => 'attachment',
+						'post_status'    => 'inherit',
+						'posts_per_page' => - 1,
+						'fields'         => 'ids',
+					);
 
-				$media_ids = get_posts( $args );
-				$media_map = [];
+					$media_ids = get_posts( $args );
+					$media_map = [];
 
-				foreach ( $media_ids as $id ) {
-					$media_map[ $id ] = 'media://' . $id;
-				}
+					foreach ( $media_ids as $id ) {
+						$media_map[ $id ] = 'media://' . $id;
+					}
 
-				return $media_map;
-			}
-		] );
-
-		}
+					return $media_map;
+				},
+			]
+		);
+	}
 }

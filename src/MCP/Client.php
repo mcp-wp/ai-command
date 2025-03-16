@@ -129,7 +129,6 @@ class Client {
 		return $image_url;
 	}
 
-
 	public function modify_image_with_ai($prompt, $media_element) {
 
 		$mime_type = $media_element['mime_type'];
@@ -157,7 +156,7 @@ class Client {
 		$parts = new Parts();
 
 		$parts->add_text_part($prompt);
-		$parts->add_file_data_part($mime_type, $image_blob);
+		$parts->add_inline_data_part($mime_type, $image_blob);
 
 
 
@@ -174,9 +173,9 @@ class Client {
 				[
 					'feature'          => 'image-modification',
 					'model'            => $model,
-						'capabilities' => [
-							AI_Capability::TEXT_GENERATION,
-						],
+					'capabilities' => [
+						AI_Capability::TEXT_GENERATION,
+					],
 					'generationConfig' => Text_Generation_Config::from_array(
 						array(
 							'responseModalities' => array(
@@ -187,7 +186,7 @@ class Client {
 					),
 				]
 			)
-			->generate_text( $contents );
+				->generate_text( $contents );
 
 		} catch ( Exception $e ) {
 			WP_CLI::error( $e->getMessage() );
@@ -228,7 +227,7 @@ class Client {
 					}
 				}
 
-				$text .= "Generated image: $image_url\n";
+				$text = "Generated image: $image_url\n";
 				break;
 			}
 		}
@@ -244,13 +243,13 @@ class Client {
 			new Content( Content_Role::USER, $parts ),
 		];
 
-//		$parts = new Parts();
-//		$parts->add_inline_data_part(
-//			'image/png',
-//			Helpers::blob_to_base64_data_url( new Blob( file_get_contents( '/private/tmp/ai-generated-imaget1sjmomi30i31C1YtZy.png' ), 'image/png' ) ),
-//		);
-//
-//		$contents[] = $parts;
+		//      $parts = new Parts();
+		//      $parts->add_inline_data_part(
+		//          'image/png',
+		//          Helpers::blob_to_base64_data_url( new Blob( file_get_contents( '/private/tmp/ai-generated-imaget1sjmomi30i31C1YtZy.png' ), 'image/png' ) ),
+		//      );
+		//
+		//      $contents[] = $parts;
 
 		return $this->call_ai_service( $contents );
 	}
@@ -305,12 +304,12 @@ class Client {
 					[
 						'feature'          => 'text-generation',
 						'model'            => $model,
-	                      'tools'        => $tools,
-							'capabilities' => [
-								AI_Capability::MULTIMODAL_INPUT,
-								AI_Capability::TEXT_GENERATION,
-	                          AI_Capability::FUNCTION_CALLING,
-							],
+						'tools'            => $tools,
+						'capabilities'     => [
+							AI_Capability::MULTIMODAL_INPUT,
+							AI_Capability::TEXT_GENERATION,
+							AI_Capability::FUNCTION_CALLING,
+						],
 						'generationConfig' => Text_Generation_Config::from_array(
 							array(
 								'responseModalities' => array(
