@@ -2,10 +2,18 @@
 
 namespace WP_CLI\AiCommand;
 
+use Felix_Arntz\AI_Services\Services\API\Enums\AI_Capability;
+use Felix_Arntz\AI_Services\Services\API\Enums\Content_Role;
+use Felix_Arntz\AI_Services\Services\API\Types\Content;
+use Felix_Arntz\AI_Services\Services\API\Types\Parts;
+use Felix_Arntz\AI_Services\Services\API\Types\Parts\Function_Call_Part;
+use Felix_Arntz\AI_Services\Services\API\Types\Parts\Text_Part;
+use Felix_Arntz\AI_Services\Services\API\Types\Tools;
+use Mcp\Client\Transport\StdioServerParameters;
+use Mcp\Types\Tool;
 use WP_CLI;
 use WP_CLI_Command;
-use WP_Community_Events;
-use WP_Error;
+use Mcp\Client\Client;
 
 /**
  *
@@ -45,302 +53,147 @@ class AiCommand extends WP_CLI_Command {
 	 * @param array $assoc_args Associative array of associative arguments.
 	 */
 	public function __invoke( $args, $assoc_args ) {
-		$server = new MCP\Server();
-		$client = new MCP\Client( $server );
 
-		$this->register_tools( $server, $client );
-
-		$this->register_resources( $server );
-
-		$result = $client->call_ai_service_with_prompt( $args[0] );
+		$result = $this->call_ai_service_with_prompt( $args[0] );
 
 		WP_CLI::success( $result );
 	}
 
-	// Register tools for AI processing
-	private function register_tools( $server, $client ) {
-		$server->register_tool(
-			[
-				'name'        => 'list_tools',
-				'description' => 'Lists all available tools with their descriptions.',
-				'inputSchema' => [
-						'type'       => 'object', // Object type for input
-						'properties' => [
-							'placeholder'    => [
-								'type'        => 'integer',
-								'description' => '',
-							]
-						],
-						'required'   => [],       // No required fields
-				],
-				'callable'    => function () use ($server) {
-						// Get all capabilities
-						$capabilities = $server->get_capabilities();
+	public function call_ai_service_with_prompt( string $prompt ) {
+		$parts = new Parts();
+		$parts->add_text_part( $prompt );
+		$content = new Content( Content_Role::USER, $parts );
 
-						// Prepare a list of tools with their descriptions
-						$tool_list = 'Return this to the user as a bullet list with each tool name and description on a new line. \n\n';
-            $tool_list .= print_r($capabilities['methods'], true);
+		return $this->call_ai_service( [ $content ] );
+	}
 
-						// Return the formatted string of tools with descriptions
-						return $tool_list;
-				},
-			]
+	public function get_session() {
+		$serverParams = new StdioServerParameters(
+			command: 'php',
+			args: [ __DIR__ . '/wp_server.php' ],
+			env: null
 		);
 
-		$map_rest_to_mcp = new MapRESTtoMCP();
-		$map_rest_to_mcp->map_rest_to_mcp( $server );
+		$client = new Client();
 
-		$server->register_tool(
-			[
-				'name' => 'create_post',
-				'description' => 'Creates a post.',
-				'inputSchema' => [
-					'type' => 'object',
-					'properties' => [
-						'title' => [
-							'type' => 'string',
-							'description' => 'The title of the post.',
-						],
-						'content' => [
-							'type' => 'string',
-							'description' => 'The content of the post.',
-						],
-						'category' => [
-							'type' => 'string',
-							'description' => 'The category of the post.',
-						],
-					],
-					'required' => [ 'title', 'content' ],
-				],
-				'callable' => function ( $params ) {
-					$request = new \WP_REST_Request( 'POST', '/wp/v2/posts' );
-					$request->set_body_params( [
-						'title'      => $params['title'],
-						'content'    => $params['content'],
-						'categories' => [ $params['category'] ],
-						'status'     => 'publish',
-					] );
-					$controller = new \WP_REST_Posts_Controller( 'post' );
-					$response   = $controller->create_item( $request );
-					$data       = $response->get_data();
-					return $data;
-				},
-			]
-		);
-
-		$server->register_tool(
-			[
-				'name'        => 'calculate_total',
-				'description' => 'Calculates the total price.',
-				'inputSchema' => [
-					'type'       => 'object',
-					'properties' => [
-						'price'    => [
-							'type'        => 'integer',
-							'description' => 'The price of the item.',
-						],
-						'quantity' => [
-							'type'        => 'integer',
-							'description' => 'The quantity of items.',
-						],
-					],
-					'required'   => [ 'price', 'quantity' ],
-				],
-				'callable'    => function ( $params ) {
-					$price    = $params['price'] ?? 0;
-					$quantity = $params['quantity'] ?? 1;
-
-					return $price * $quantity;
-				},
-			]
-		);
-
-
-
-		// Register tool to retrieve last N posts in JSON format.
-		$server->register_tool([
-			'name'        => 'list_posts',
-			'description' => 'Retrieves the last N posts.',
-			'inputSchema' => [
-				'type'       => 'object',
-				'properties' => [
-					'count' => [
-						'type'        => 'integer',
-						'description' => 'The number of posts to retrieve.',
-					],
-				],
-				'required'   => ['count'],
-			],
-			'callable'    => function ($params) {
-				$query = new \WP_Query([
-					'posts_per_page' => $params['count'],
-					'post_status'    => 'publish',
-				]);
-				$posts = [];
-				while ($query->have_posts()) {
-					$query->the_post();
-					$posts[] = ['title' => get_the_title(), 'content' => get_the_content()];
-				}
-				wp_reset_postdata();
-				return $posts;
-			},
-		]);
-
-		$server->register_tool(
-			[
-				'name'        => 'greet',
-				'description' => 'Greets the user.',
-				'inputSchema' => [
-					'type'       => 'object',
-					'properties' => [
-						'name' => [
-							'type'        => 'string',
-							'description' => 'The name of the user.',
-						],
-					],
-					'required'   => [ 'name' ],
-				],
-				'callable'    => function ( $params ) {
-					return 'Hello, ' . $params['name'] . '!';
-				},
-			]
-		);
-
-//			$server->register_tool(
-//				[
-//					'name'        => 'generate_image',
-//					'description' => 'Generates an image.',
-//					'inputSchema' => [
-//						'type'       => 'object',
-//						'properties' => [
-//							'prompt' => [
-//								'type'        => 'string',
-//								'description' => 'The prompt for generating the image.',
-//							],
-//						],
-//						'required'   => [ 'prompt' ],
-//					],
-//					'callable'    => function ( $params ) use ( $client ) {
-//						return $client->get_image_from_ai_service( $params['prompt'] );
-//					},
-//				]
-//			);
-
-		$server->register_tool(
-			[
-				'name'        => 'fetch_wp_community_events',
-				'description' => 'Fetches upcoming WordPress community events near a specified city or the user\'s current location. If no events are found in the exact location, nearby events within a specific radius will be considered.',
-				'inputSchema' => [
-					'type'       => 'object',
-					'properties' => [
-						'location' => [
-							'type'        => 'string',
-							'description' => 'City name or "near me" for auto-detected location. If no events are found in the exact location, the tool will also consider nearby events within a specified radius (default: 100 km).',
-						],
-					],
-					'required'   => [ 'location' ],  // We only require the location
-				],
-				'callable'    => function ( $params ) {
-					// Default user ID is 0
-					$user_id = 0;
-
-					// Get the location from the parameters (already supplied in the prompt)
-					$location_input = strtolower( trim( $params['location'] ) );
-
-					// Manually include the WP_Community_Events class if it's not loaded
-					if ( ! class_exists( 'WP_Community_Events' ) ) {
-							require_once ABSPATH . 'wp-admin/includes/class-wp-community-events.php';
-					}
-
-					// Determine location for the WP_Community_Events class
-					$location = null;
-					if ( $location_input !== 'near me' ) {
-						// Provide city name (WP will resolve coordinates)
-						$location = [
-							'description' => $location_input,
-						];
-					}
-
-					// Instantiate WP_Community_Events with user ID (0) and optional location
-					$events_instance = new WP_Community_Events( $user_id, $location );
-
-					// Get events from WP_Community_Events
-					$events = $events_instance->get_events( $location_input );
-
-					// Check for WP_Error
-					if ( is_wp_error( $events ) ) {
-							return [ 'error' => $events->get_error_message() ];
-					}
-
-						// If no events found
-					if ( empty( $events['events'] ) ) {
-						return [ 'message' => 'No events found near ' . ( $location_input === 'near me' ? 'your location' : $location_input ) ];
-					}
-
-						// Format and return the events correctly
-						$formatted_events = array_map(
-							function ( $event ) {
-								// Log event details to ensure properties are accessible
-								error_log( 'Event details: ' . print_r( $event, true ) );
-
-								// Initialize a formatted event string
-								$formatted_event = '';
-
-								// Format event title
-								if ( isset( $event['title'] ) ) {
-									$formatted_event .= $event['title'] . "\n";
-								}
-
-								// Format the date nicely
-								$formatted_event .= '  - Date: ' . ( isset( $event['date'] ) ? date( 'F j, Y g:i A', strtotime( $event['date'] ) ) : 'No date available' ) . "\n";
-
-								// Format the location
-								if ( isset( $event['location']['location'] ) ) {
-										$formatted_event .= '  - Location: ' . $event['location']['location'] . "\n";
-								}
-
-								// Format the event URL
-								$formatted_event .= isset( $event['url'] ) ? '  - URL: ' . $event['url'] . "\n" : '';
-
-								return $formatted_event;
-							},
-							$events['events']
-						);
-
-						// Combine the formatted events into a single string
-						$formatted_events_output = implode( "\n", $formatted_events );
-
-						// Return the formatted events string
-						return [
-							'message' => 'OK. I found ' . count( $formatted_events ) . ' WordPress events near ' . ( $location_input === 'near me' ? 'your location' : $location_input ) . ":\n\n" . $formatted_events_output,
-						];
-				},
-			]
+		// Connect to the server using stdio transport
+		return $client->connect(
+			commandOrUrl: $serverParams->getCommand(),
+			args: $serverParams->getArgs(),
+			env: $serverParams->getEnv()
 		);
 	}
 
-	// Register resources for AI access
-	private function register_resources( $server ) {
-		// Register Users resource
-		$server->register_resource(
-			[
-				'name'        => 'users',
-				'uri'         => 'data://users',
-				'description' => 'List of users',
-				'mimeType'    => 'application/json',
-				'dataKey'     => 'users', // Data will be fetched from 'users'
-			]
+	private function call_ai_service( $contents ) {
+		// See https://github.com/felixarntz/ai-services/issues/25.
+		add_filter(
+			'map_meta_cap',
+			static function () {
+				return [ 'exist' ];
+			}
 		);
 
-		// Register Product Catalog resource
-		$server->register_resource(
-			[
-				'name'        => 'product_catalog',
-				'uri'         => 'file://./products.json',
-				'description' => 'Product catalog',
-				'mimeType'    => 'application/json',
-				'filePath'    => './products.json', // Data will be fetched from products.json
-			]
-		);
+		$session   = $this->get_session();
+		$mcp_tools = $session->listTools();
+
+		$function_declarations = [];
+
+		/**
+		 * @var Tool $mcp_tool
+		 */
+		foreach ( $mcp_tools->tools as $mcp_tool ) {
+			$function_declarations[] = [
+				'name'        => $mcp_tool->name,
+				'description' => $mcp_tool->description,
+				'parameters'  => json_decode( json_encode( $mcp_tool->inputSchema->jsonSerialize() ), true ),
+			];
+		}
+
+		$new_contents = $contents;
+
+		$tools = new Tools();
+		$tools->add_function_declarations_tool( $function_declarations );
+
+		try {
+			$service = ai_services()->get_available_service(
+				[
+					'capabilities' => [
+						AI_Capability::MULTIMODAL_INPUT,
+						AI_Capability::TEXT_GENERATION,
+						AI_Capability::FUNCTION_CALLING,
+					],
+				]
+			);
+
+			\WP_CLI::debug( 'Making request...' . print_r( $contents, true ), 'ai' );
+
+			if ( $service->get_service_slug() === 'openai' ) {
+				$model = 'gpt-4o';
+			} else {
+				$model = 'gemini-2.0-flash';
+			}
+
+			$candidates = $service
+				->get_model(
+					[
+						'feature'      => 'text-generation',
+						'model'        => $model,
+						'tools'        => $tools,
+						'capabilities' => [
+							//                          AI_Capability::MULTIMODAL_INPUT,
+																						AI_Capability::TEXT_GENERATION,
+							AI_Capability::FUNCTION_CALLING,
+						],
+					]
+				)
+				->generate_text( $contents );
+
+			$text = '';
+			foreach ( $candidates->get( 0 )->get_content()->get_parts() as $part ) {
+				if ( $part instanceof Text_Part ) {
+					if ( '' !== $text ) {
+						$text .= "\n\n";
+					}
+					$text .= $part->get_text();
+				} elseif ( $part instanceof Function_Call_Part ) {
+					$result = $session->callTool( $part->get_name(), $part->get_args() );
+
+					$function_result = json_decode( json_encode( $result->content[0] ), true );
+					$function_result = [
+						'result' => $function_result['text'],
+					];
+
+					$function_name = $part->get_name();
+					echo "Output generated with the '$function_name' tool:\n";
+
+					$parts = new Parts();
+					$parts->add_function_call_part( $part->get_id(), $part->get_name(), $part->get_args() );
+					$new_contents[] = new Content( Content_Role::MODEL, $parts );
+
+					$parts = new Parts();
+					$parts->add_function_response_part( $part->get_id(), $part->get_name(), $function_result );
+					$content        = new Content( Content_Role::USER, $parts );
+					$new_contents[] = $content;
+				}
+			}
+
+			if ( $new_contents !== $contents ) {
+				return $this->call_ai_service( $new_contents );
+			}
+
+			// Keep the session open to continue chatting.
+
+			WP_CLI::line( $text );
+
+			$response = \cli\prompt( '', false, '' );
+
+			$parts = new Parts();
+			$parts->add_text_part( $response );
+			$content        = new Content( Content_Role::USER, $parts );
+			$new_contents[] = $content;
+			return $this->call_ai_service( $new_contents );
+		} catch ( Exception $e ) {
+			WP_CLI::error( $e->getMessage() );
+		}
 	}
 }
