@@ -53,16 +53,16 @@ The service supports:
 
 ### Methods
 
-| Name | Description |
-| ---  | --- |
-| `Client::__construct()`  | Constructor |
-| `Client::send_request()`  | Constructs a JSON-RPC request, sends it to the AI service, and decodes the response. |
-| `Client::__call()`  | A magic method to call any AI service method dynamically. |
-| `Client::list_resources()`  | Retrieves available AI-generated content. |
-| `Client::read_resource()`  | Reads a specific AI-generated resource. |
-| `Client::get_image_from_ai_service()`  | Calls an AI image generation service. Uses `AI_Capability::IMAGE_GENERATION` capibilities. Returns the image URL. |
-| `Client::call_ai_service_with_prompt()`  | Calls AI with a text prompt. |
-| `Client::call_ai_service()`  | AI function calls and processing. |
+| Name | Return Type | Description |
+| --- | --- | --- |
+| `Client::__construct()`  | | Constructor |
+| `Client::send_request()` | `array` | Sends JSON-RPC requests to the MCP server. |
+| `Client::__call()` | `mixed` | Dynamically forwards method calls to `send_request()`. |
+| `Client::list_resources()` | `array` | Retrieves all registered resources from MCP. |
+| `Client::read_resource( $uri )` | `array` | Reads and returns data from a specified resource. |
+| `Client::get_image_from_ai_service( $prompt )` | `string` | Generates an AI image from a prompt and returns the file path. Uses `AI_Capability::IMAGE_GENERATION` capibilities. |
+| `Client::call_ai_service_with_prompt( $prompt )` | `string` | Calls the AI service with a prompt for text generation. |
+| `Client::call_ai_service( $contents )` | `mixed` | Handles AI-generated responses, including text and function calls. |
 
 ## `Server` class
 
