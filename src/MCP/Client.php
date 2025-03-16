@@ -6,12 +6,14 @@ use Exception;
 use Felix_Arntz\AI_Services\Services\API\Enums\AI_Capability;
 use Felix_Arntz\AI_Services\Services\API\Enums\Content_Role;
 use Felix_Arntz\AI_Services\Services\API\Helpers;
+use Felix_Arntz\AI_Services\Services\API\Types\Blob;
 use Felix_Arntz\AI_Services\Services\API\Types\Content;
 use Felix_Arntz\AI_Services\Services\API\Types\Parts;
 use Felix_Arntz\AI_Services\Services\API\Types\Parts\File_Data_Part;
 use Felix_Arntz\AI_Services\Services\API\Types\Parts\Function_Call_Part;
 use Felix_Arntz\AI_Services\Services\API\Types\Parts\Inline_Data_Part;
 use Felix_Arntz\AI_Services\Services\API\Types\Parts\Text_Part;
+use Felix_Arntz\AI_Services\Services\API\Types\Text_Generation_Config;
 use Felix_Arntz\AI_Services\Services\API\Types\Tools;
 use WP_CLI;
 
@@ -131,9 +133,20 @@ class Client {
 		\WP_CLI::debug( "Prompt: {$prompt}", 'mcp_server' );
 		$parts = new Parts();
 		$parts->add_text_part( $prompt );
-		$content = new Content( Content_Role::USER, $parts );
 
-		return $this->call_ai_service( [ $content ] );
+		$contents = [
+			new Content( Content_Role::USER, $parts ),
+		];
+
+//		$parts = new Parts();
+//		$parts->add_inline_data_part(
+//			'image/png',
+//			Helpers::blob_to_base64_data_url( new Blob( file_get_contents( '/private/tmp/ai-generated-imaget1sjmomi30i31C1YtZy.png' ), 'image/png' ) ),
+//		);
+//
+//		$contents[] = $parts;
+
+		return $this->call_ai_service( $contents );
 	}
 
 	private function call_ai_service( $contents ) {
@@ -173,25 +186,33 @@ class Client {
 				]
 			);
 
-		  \WP_CLI::debug( 'Making request...' . print_r( $contents, true ), 'ai' );
+			\WP_CLI::debug( 'Making request...' . print_r( $contents, true ), 'ai' );
 
 			if ( $service->get_service_slug() === 'openai' ) {
 				$model = 'gpt-4o';
 			} else {
-				$model = 'gemini-2.0-flash';
+				$model = 'gemini-2.0-flash-exp';
 			}
 
 			$candidates = $service
 				->get_model(
 					[
-						'feature'      => 'text-generation',
-						'model'        => $model,
-						'tools'        => $tools,
-						'capabilities' => [
-							AI_Capability::MULTIMODAL_INPUT,
-							AI_Capability::TEXT_GENERATION,
-							AI_Capability::FUNCTION_CALLING,
-						],
+						'feature'          => 'text-generation',
+						'model'            => $model,
+						//                      'tools'        => $tools,
+							'capabilities' => [
+								AI_Capability::MULTIMODAL_INPUT,
+								AI_Capability::TEXT_GENERATION,
+						//                          AI_Capability::FUNCTION_CALLING,
+							],
+						'generationConfig' => Text_Generation_Config::from_array(
+							array(
+								'responseModalities' => array(
+									'Text',
+									'Image',
+								),
+							)
+						),
 					]
 				)
 				->generate_text( $contents );
@@ -225,6 +246,46 @@ class Client {
 					$parts->add_function_response_part( $part->get_id(), $part->get_name(), $function_result );
 					$content        = new Content( Content_Role::USER, $parts );
 					$new_contents[] = $content;
+				} elseif ( $part instanceof Inline_Data_Part ) {
+					$image_url  = $part->get_base64_data(); // Data URL.
+					$image_blob = Helpers::base64_data_url_to_blob( $image_url );
+
+					if ( $image_blob ) {
+						$filename  = tempnam( '/tmp', 'ai-generated-image' );
+						$parts     = explode( '/', $part->get_mime_type() );
+						$extension = $parts[1];
+						rename( $filename, $filename . '.' . $extension );
+						$filename .= '.' . $extension;
+
+						file_put_contents( $filename, $image_blob->get_binary_data() );
+
+						$image_url = $filename;
+					} else {
+						$binary_data = base64_decode( $image_url );
+						if ( false !== $binary_data ) {
+							$image_blob = new Blob( $binary_data, $part->get_mime_type() );
+
+							$filename  = tempnam( '/tmp', 'ai-generated-image' );
+							$parts     = explode( '/', $part->get_mime_type() );
+							$extension = $parts[1];
+							rename( $filename, $filename . '.' . $extension );
+							$filename .= '.' . $extension;
+
+							file_put_contents( $filename, $image_blob->get_binary_data() );
+
+							$image_url = $filename;
+						}
+					}
+
+					$text .= "Generated image: $image_url\n";
+
+					break;
+				}
+
+				if ( $part instanceof File_Data_Part ) {
+					$image_url = $part->get_file_uri(); // Actual URL. May have limited TTL (often 1 hour).
+					// TODO: Save as file or so.
+					break;
 				}
 			}
 
