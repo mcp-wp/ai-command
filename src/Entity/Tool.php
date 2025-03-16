@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WP_CLI\AiCommand\Entity;
 
+use InvalidArgumentException;
+
 final class Tool
 {
 

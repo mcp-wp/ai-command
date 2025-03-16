@@ -15,18 +15,27 @@ if ( file_exists( $ai_command_autoloader ) ) {
 	require_once $ai_command_autoloader;
 }
 
-WP_CLI::add_command( 'ai', function ( $args, $assoc_args ) {
+WP_CLI::add_command( 'ai', static function ( $args, $assoc_args ) {
+	$server = new MCP\Server();
+	$client = new MCP\Client($server);
+
 	$tools = new ToolCollection();
 
 	// TODO Register your tool here and add it to the collection
 
-	// WordPress REST calls
-	$rest_tools = new MapRESTtoMCP();
+	$all_tools = [
+		...(new ImageTools($client))->get_tools(),
+		...(new MapRESTtoMCP())->map_rest_to_mcp(),
+	];
 
-	foreach( $rest_tools->map_rest_to_mcp() as $tool ) {
-		$tools->add( $tool );
+	foreach ($all_tools as $tool) {
+		$tools->add($tool);
 	}
 
-	$ai_command = new AiCommand( new CollectionToolRepository( $tools ) );
+	$ai_command = new AiCommand(
+		new CollectionToolRepository( $tools ),
+		$server,
+		$client
+	);
 	$ai_command( $args, $assoc_args );
 } );
