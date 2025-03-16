@@ -64,16 +64,16 @@ Once you've decided to commit the time to seeing your pull request through, [ple
 
 ### Cloudfest Hackathon Contributors
 
-- Pascal Birchler - @swissspidy
-- Jan-Willem Oostendorp - @janw-me/
-- Joost de Valk - @jdevalk
-- Marco Chiesi - @marcochiesi
-- Matt Biscay - @skyminds
-- Moritz Bappert - @moritzbappert
-- James Hunt - @thetwopct
-- Tome Pajkovski - @tomepajk
-- David Mosterd - @davidmosterd
-- Milana Cap - @zzap
+- Pascal Birchler - [@swissspidy](https://github.com/swissspidy)
+- Jan-Willem Oostendorp - [@janw-me](https://github.com/janw-me)
+- Joost de Valk - [@jdevalk](https://github.com/jdevalk)
+- Marco Chiesi - [@marcochiesi](https://github.com/marcochiesi)
+- Matt Biscay - [@skyminds](https://github.com/skyminds)
+- Moritz Bappert - [@moritzbappert](https://github.com/moritzbappert)
+- James Hunt - [@thetwopct](https://github.com/thetwopct)
+- Tome Pajkovski - [@tomepajk](https://github.com/tomepajk)
+- David Mosterd - [@davidmosterd](https://github.com/davidmosterd)
+- Milana Cap - [@zzap](https://github.com/zzap)
 
 ## Support
 
