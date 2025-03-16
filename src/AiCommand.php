@@ -215,25 +215,25 @@ class AiCommand extends WP_CLI_Command {
 			]
 		);
 
-		//          $server->register_tool(
-		//              [
-		//                  'name'        => 'generate_image',
-		//                  'description' => 'Generates an image.',
-		//                  'inputSchema' => [
-		//                      'type'       => 'object',
-		//                      'properties' => [
-		//                          'prompt' => [
-		//                              'type'        => 'string',
-		//                              'description' => 'The prompt for generating the image.',
-		//                          ],
-		//                      ],
-		//                      'required'   => [ 'prompt' ],
-		//                  ],
-		//                  'callable'    => function ( $params ) use ( $client ) {
-		//                      return $client->get_image_from_ai_service( $params['prompt'] );
-		//                  },
-		//              ]
-		//          );
+		$server->register_tool(
+				[
+						'name'        => 'generate_image',
+						'description' => 'Generates an image.',
+						'inputSchema' => [
+								'type'       => 'object',
+								'properties' => [
+										'prompt' => [
+												'type'        => 'string',
+												'description' => 'The prompt for generating the image.',
+										],
+								],
+								'required'   => [ 'prompt' ],
+						],
+						'callable'    => function ( $params ) use ( $client ) {
+								return $client->get_image_from_ai_service( $params['prompt'] );
+						},
+				]
+		);
 
 		$server->register_tool(
 			[
@@ -347,7 +347,6 @@ class AiCommand extends WP_CLI_Command {
 					'required'   => [ 'prompt', 'media_id' ],
 				],
 				'callable'    => function ( $params ) use ( $client, $server ) {
-					\WP_CLI::log('modifying image ____ logging ___');
 					$media_uri      = 'media://' . $params['media_id'];
 					$media_resource = $server->get_resource_data( $media_uri );
 					return $client->modify_image_with_ai( $params['prompt'], $media_resource );

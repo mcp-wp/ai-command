@@ -15,6 +15,7 @@ use Felix_Arntz\AI_Services\Services\API\Types\Parts\Inline_Data_Part;
 use Felix_Arntz\AI_Services\Services\API\Types\Parts\Text_Part;
 use Felix_Arntz\AI_Services\Services\API\Types\Text_Generation_Config;
 use Felix_Arntz\AI_Services\Services\API\Types\Tools;
+use WP_CLI\AiCommand\MediaManager;
 use WP_CLI;
 
 class Client {
@@ -110,6 +111,7 @@ class Client {
 					file_put_contents( $filename, $image_blob->get_binary_data() );
 
 					$image_url = $filename;
+					\WP_CLI\AiCommand\MediaManager::upload_to_media_library($filename);
 				}
 
 				break;
@@ -224,6 +226,8 @@ class Client {
 						file_put_contents( $filename, $image_blob->get_binary_data() );
 
 						$image_url = $filename;
+
+						\WP_CLI\AiCommand\MediaManager::upload_to_media_library($filename);
 					}
 				}
 
