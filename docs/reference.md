@@ -26,12 +26,13 @@ This class follows an MCP client-server architecture, where:
 
 ### Methods
 
-| Name | Description |
-| ---  | --- |
-| `AiCommand::__invoke()`  | <ul><li>Creates an AI server and client instance.</li><li>Registers tools & resources for AI processing.</li><li>Sends user input ($args[0]) to AI.</li><li>Outputs AI-generated results.</li></ul> |
-| `AiCommand::register_tools()`  | Registers functionality AI can invoke. See [available tools](tools.md). |
-| `AiCommand::register_resources()`  | Registers structured datasets AI can access. See [available resources](). |
-
+| Name | Return Type | Description |
+| --- | --- | --- |
+| `AiCommand::__invoke()` | `void` | Executes AI-driven WP-CLI commands. |
+| `AiCommand::register_tools( $server )` | `void` | Registers AI-powered tools in MCP. See [available tools](tools.md). |
+| `AiCommand::register_resources( $server )` | `void` | Registers data resources (e.g., users, products). |
+| `AiCommand::list_tools()` | `string` | Lists available AI tools. |
+| `AiCommand::fetch_wp_community_events( $params )` | `array` | Retrieves WordPress community events. |
 
 ## `Client` class
 
