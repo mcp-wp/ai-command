@@ -157,7 +157,7 @@ class Client {
 		$parts = new Parts();
 
 		$parts->add_text_part($prompt);
-		$parts->add_file_data_part($mime_type, $image_blob);
+		$parts->add_inline_data_part($mime_type, $image_blob);
 
 
 
@@ -228,7 +228,7 @@ class Client {
 					}
 				}
 
-				$text .= "Generated image: $image_url\n";
+				$text = "Generated image: $image_url\n";
 				break;
 			}
 		}
