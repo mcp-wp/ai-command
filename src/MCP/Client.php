@@ -129,7 +129,6 @@ class Client {
 		return $image_url;
 	}
 
-
 	public function modify_image_with_ai($prompt, $media_element) {
 
 		$mime_type = $media_element['mime_type'];
@@ -174,9 +173,9 @@ class Client {
 				[
 					'feature'          => 'image-modification',
 					'model'            => $model,
-						'capabilities' => [
-							AI_Capability::TEXT_GENERATION,
-						],
+					'capabilities' => [
+						AI_Capability::TEXT_GENERATION,
+					],
 					'generationConfig' => Text_Generation_Config::from_array(
 						array(
 							'responseModalities' => array(
@@ -187,7 +186,7 @@ class Client {
 					),
 				]
 			)
-			->generate_text( $contents );
+				->generate_text( $contents );
 
 		} catch ( Exception $e ) {
 			WP_CLI::error( $e->getMessage() );
@@ -236,11 +235,23 @@ class Client {
 	}
 
 	public function call_ai_service_with_prompt( string $prompt ) {
+		\WP_CLI::debug( "Prompt: {$prompt}", 'mcp_server' );
 		$parts = new Parts();
 		$parts->add_text_part( $prompt );
-		$content = new Content( Content_Role::USER, $parts );
 
-		return $this->call_ai_service( [ $content ] );
+		$contents = [
+			new Content( Content_Role::USER, $parts ),
+		];
+
+		//      $parts = new Parts();
+		//      $parts->add_inline_data_part(
+		//          'image/png',
+		//          Helpers::blob_to_base64_data_url( new Blob( file_get_contents( '/private/tmp/ai-generated-imaget1sjmomi30i31C1YtZy.png' ), 'image/png' ) ),
+		//      );
+		//
+		//      $contents[] = $parts;
+
+		return $this->call_ai_service( $contents );
 	}
 
 	private function call_ai_service( $contents ) {
@@ -282,23 +293,31 @@ class Client {
 
 			\WP_CLI::debug( 'Making request...' . print_r( $contents, true ), 'ai' );
 
-			// if ( $service->get_service_slug() === 'openai' ) {
-			// 	$model = 'gpt-4o';
-			// } else {
-			// 	$model = 'gemini-2.0-flash-exp';
-			// }
+			if ( $service->get_service_slug() === 'openai' ) {
+				$model = 'gpt-4o';
+			} else {
+				$model = 'gemini-2.0-flash-exp';
+			}
 
 			$candidates = $service
 				->get_model(
 					[
-						'feature'      => 'text-generation',
-						// 'model'        => $model,
-						'tools'        => $tools,
-						'capabilities' => [
+						'feature'          => 'text-generation',
+						'model'            => $model,
+						'tools'            => $tools,
+						'capabilities'     => [
 							AI_Capability::MULTIMODAL_INPUT,
 							AI_Capability::TEXT_GENERATION,
 							AI_Capability::FUNCTION_CALLING,
 						],
+						'generationConfig' => Text_Generation_Config::from_array(
+							array(
+								'responseModalities' => array(
+									'Text',
+									'Image',
+								),
+							)
+						),
 					]
 				)
 				->generate_text( $contents );
@@ -312,6 +331,10 @@ class Client {
 					$text .= $part->get_text();
 				} elseif ( $part instanceof Function_Call_Part ) {
 					$function_result = $this->{$part->get_name()}( $part->get_args() );
+
+					// Capture the function name here
+					$function_name = $part->get_name();
+					echo "Output generated with the '$function_name' tool:\n"; // Log the function name
 
 					// Odd limitation of add_function_response_part().
 					if ( ! is_array( $function_result ) ) {
@@ -328,6 +351,46 @@ class Client {
 					$parts->add_function_response_part( $part->get_id(), $part->get_name(), $function_result );
 					$content        = new Content( Content_Role::USER, $parts );
 					$new_contents[] = $content;
+				} elseif ( $part instanceof Inline_Data_Part ) {
+					$image_url  = $part->get_base64_data(); // Data URL.
+					$image_blob = Helpers::base64_data_url_to_blob( $image_url );
+
+					if ( $image_blob ) {
+						$filename  = tempnam( '/tmp', 'ai-generated-image' );
+						$parts     = explode( '/', $part->get_mime_type() );
+						$extension = $parts[1];
+						rename( $filename, $filename . '.' . $extension );
+						$filename .= '.' . $extension;
+
+						file_put_contents( $filename, $image_blob->get_binary_data() );
+
+						$image_url = $filename;
+					} else {
+						$binary_data = base64_decode( $image_url );
+						if ( false !== $binary_data ) {
+							$image_blob = new Blob( $binary_data, $part->get_mime_type() );
+
+							$filename  = tempnam( '/tmp', 'ai-generated-image' );
+							$parts     = explode( '/', $part->get_mime_type() );
+							$extension = $parts[1];
+							rename( $filename, $filename . '.' . $extension );
+							$filename .= '.' . $extension;
+
+							file_put_contents( $filename, $image_blob->get_binary_data() );
+
+							$image_url = $filename;
+						}
+					}
+
+					$text .= "Generated image: $image_url\n";
+
+					break;
+				}
+
+				if ( $part instanceof File_Data_Part ) {
+					$image_url = $part->get_file_uri(); // Actual URL. May have limited TTL (often 1 hour).
+					// TODO: Save as file or so.
+					break;
 				}
 			}
 

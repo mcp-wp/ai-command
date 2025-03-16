@@ -3,6 +3,7 @@
 namespace WP_CLI\AiCommand\MCP;
 
 use Exception;
+use WP_CLI;
 use InvalidArgumentException;
 
 class Server {
@@ -48,6 +49,12 @@ class Server {
 		$callable     = $tool_definition['callable'];
 		$description  = $tool_definition['description'] ?? null;
 		$input_schema = $tool_definition['inputSchema'] ?? null;
+
+		// TODO: This is a temporary limit.
+		if ( count( $this->tools ) >= 128 ) {
+			WP_CLI::debug( 'Too many tools, max is 128', 'tools' );
+			return;
+		}
 
 		$this->tools[ $name ] = [
 			'name'        => $name,
@@ -163,7 +170,7 @@ class Server {
 		}
 	}
 
-	private function list_resources() {
+	public function list_resources() {
 		$result = [];
 		foreach ( $this->resources as $resource ) {
 			$result[] = [
@@ -207,10 +214,9 @@ class Server {
 	public function get_resource_data( $mcp_resource ) {
 
 		// return the resource element based on the path
-		if(str_starts_with($mcp_resource, 'media://')) {
-			return $this->get_media_data($mcp_resource);
+		if ( str_starts_with( $mcp_resource, 'media://' ) ) {
+			return $this->get_media_data( $mcp_resource );
 		}
-
 
 		// Example: If the resource is a file, read the file contents.
 		if ( isset( $mcp_resource['filePath'] ) ) {
@@ -228,9 +234,9 @@ class Server {
 	}
 
 
-	private function get_media_data($mcp_resource) {
-		foreach($this->resources as $resource) {
-			if($resource['uri'] === $mcp_resource) {
+	private function get_media_data( $mcp_resource ) {
+		foreach ( $this->resources as $resource ) {
+			if ( $resource['uri'] === $mcp_resource ) {
 					$callback_response = $resource['callable']();
 					return $callback_response;
 			}
