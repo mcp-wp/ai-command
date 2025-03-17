@@ -4,6 +4,11 @@
 
 This documentation aims to explain usage, as well as present the technical specification for `ai` WP-CLI command.
 
+Table of contents:
+- [Reference](reference.md)
+- [Tools](tools.md)
+- [Cookbook](prompts-cookbook.md)
+
 ### Dependencies
 
 - [WordPress](https://wordpress.org/download/)
