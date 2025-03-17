@@ -17,10 +17,8 @@ class MapCLItoMCP {
 			'config',
 			'core',
 			'maintenance-mode',
-			'post-type',
 			'profile',
 			'rewrite',
-			'taxonomy',
 		];
 
 		$tools = [];
