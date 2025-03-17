@@ -3,6 +3,11 @@
 namespace WP_CLI\AiCommand;
 
 use WP_CLI\AiCommand\ToolRepository\CollectionToolRepository;
+use WP_CLI\AiCommand\Tools\ImageTools;
+use WP_CLI\AiCommand\Tools\MiscTools;
+use WP_CLI\AiCommand\Tools\URLTools;
+use WP_CLI\AiCommand\Tools\CommunityEvents;
+use WP_CLI\AiCommand\Tools\MapRESTtoMCP;
 use WP_CLI;
 
 if ( ! class_exists( '\WP_CLI' ) ) {
@@ -25,6 +30,9 @@ WP_CLI::add_command( 'ai', static function ( $args, $assoc_args ) {
 
 	$all_tools = [
 		...(new ImageTools($client))->get_tools(),
+		...(new CommunityEvents($client))->get_tools(),
+		...(new MiscTools($server))->get_tools(),
+		...(new URLTools($server))->get_tools(),
 		...(new MapRESTtoMCP())->map_rest_to_mcp(),
 		...(new MapCLItoMCP())->map_cli_to_mcp(),
 

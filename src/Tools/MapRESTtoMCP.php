@@ -1,8 +1,9 @@
 <?php
 
-namespace WP_CLI\AiCommand;
+namespace WP_CLI\AiCommand\Tools;
 
 use WP_CLI\AiCommand\Entity\Tool;
+use WP_CLI\AiCommand\RouteInformation;
 use WP_CLI;
 use WP_REST_Request;
 
