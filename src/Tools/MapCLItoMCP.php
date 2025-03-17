@@ -1,6 +1,6 @@
 <?php
 
-namespace WP_CLI\AiCommand;
+namespace WP_CLI\AiCommand\Tools;
 
 use WP_CLI;
 use WP_CLI\AiCommand\Entity\Tool;

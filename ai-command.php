@@ -8,6 +8,7 @@ use WP_CLI\AiCommand\Tools\MiscTools;
 use WP_CLI\AiCommand\Tools\URLTools;
 use WP_CLI\AiCommand\Tools\CommunityEvents;
 use WP_CLI\AiCommand\Tools\MapRESTtoMCP;
+use WP_CLI\AiCommand\Tools\MapCLItoMCP;
 use WP_CLI;
 
 if ( ! class_exists( '\WP_CLI' ) ) {
