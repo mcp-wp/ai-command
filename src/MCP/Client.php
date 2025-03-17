@@ -309,4 +309,130 @@ class Client {
 			WP_CLI::error( $e->getMessage() );
 		}
 	}
+
+	public function modify_image_with_ai($prompt, $media_element) {
+
+
+		$mime_type = $media_element['mime_type'];
+    $image_path = $media_element['filepath'];
+    $image_contents = file_get_contents($image_path);
+
+    // Convert image to base64
+    $base64_image = base64_encode($image_contents);
+
+    // API Configuration
+		$api_key = get_option('ais_google_api_key');
+
+		if(!$api_key) {
+			WP_CLI::error("Gemini API Key is not available");
+		}
+		$model = 'gemini-2.0-flash-exp';
+    $api_url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$api_key}";
+
+    // Prepare request payload
+    $payload = [
+        'contents' => [
+            [
+                'role' => 'user',
+                'parts' => [
+                    [
+                        'text' => $prompt
+                    ],
+                    [
+                        'inline_data' => [
+                            'mime_type' => $mime_type,
+                            'data' => $base64_image
+                        ]
+                    ]
+                ]
+            ]
+        ],
+        'generationConfig' => [
+            'responseModalities' => ['TEXT', 'IMAGE']
+        ]
+    ];
+
+    // Convert payload to JSON
+    $json_payload = json_encode($payload);
+
+    // Set up cURL request
+    $ch = curl_init($api_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $json_payload);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($json_payload)
+    ]);
+
+    // Execute request
+    $response = curl_exec($ch);
+    $error = curl_error($ch);
+    $status_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    // Handle errors
+    if ($error) {
+        WP_CLI::error("cURL Error: " . $error);
+        return false;
+    }
+
+    if ($status_code >= 400) {
+        WP_CLI::error("API Error (Status $status_code): " . $response);
+        return false;
+    }
+
+    // Process response
+    $response_data = json_decode($response, true);
+
+    // Check for valid response
+    if (empty($response_data) || !isset($response_data['candidates'][0]['content']['parts'])) {
+        WP_CLI::error("Invalid API response format");
+        return false;
+    }
+
+    // Extract image data from response
+    $image_data = null;
+    foreach ($response_data['candidates'][0]['content']['parts'] as $part) {
+        if (isset($part['inlineData'])) {
+            $image_data = $part['inlineData']['data'];
+            $response_mime_type = $part['inlineData']['mimeType'];
+            break;
+        }
+    }
+
+    if (!$image_data) {
+        WP_CLI::error("No image data in response");
+        return false;
+    }
+
+    // Decode base64 image
+    $binary_data = base64_decode($image_data);
+    if (false === $binary_data) {
+        WP_CLI::error("Failed to decode image data");
+        return false;
+    }
+
+    // Create temporary file for the image
+    $extension = explode('/', $response_mime_type)[1] ?? 'jpg';
+    $filename = tempnam('/tmp', 'ai-generated-image');
+    rename($filename, $filename . '.' . $extension);
+    $filename .= '.' . $extension;
+
+    // Save image to the file
+    if (!file_put_contents($filename, $binary_data)) {
+        WP_CLI::error("Failed to save image to temporary file");
+        return false;
+    }
+
+    // Upload to media library
+    $image_id = \WP_CLI\AiCommand\MediaManager::upload_to_media_library($filename);
+
+    if ($image_id) {
+        WP_CLI::success('Image generated with ID: ' . $image_id);
+        return $image_id;
+    }
+
+    return false;
+}
 }

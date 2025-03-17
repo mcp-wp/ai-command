@@ -1,12 +1,23 @@
 <?php
 
 namespace WP_CLI\AiCommand\Tools;
+use WP_CLI\AiCommand\Entity\Tool;
 
+/**
+ * TODO; Should work, not fully tested after all merges.
+ */
 class URLTools {
 
+	private $server;
+
 	public function __construct( $server ) {
-		$server->register_tool(
-			[
+		$this->server = $server;
+	}
+
+	public function get_tools(){
+		$tools = [];
+
+		$tools[] =  new Tool( [
 				'name'        => 'retrieve_page',
 				'description' => 'Retrieves a page from the web.',
 				'inputSchema' => [
@@ -28,8 +39,7 @@ class URLTools {
 			]
 		);
 
-		$server->register_tool(
-			[
+		$tools[] =  new Tool( [
 				'name'        => 'retrieve_rss_feed',
 				'description' => 'Retrieves an RSS feed.',
 				'inputSchema' => [
@@ -51,6 +61,7 @@ class URLTools {
 				},
 			]
 		);
-    }
-}
 
+		return $tools;
+	}
+}

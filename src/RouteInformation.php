@@ -33,6 +33,11 @@ class RouteInformation
 		return $this->method . '_' . sanitize_title($route);
 	}
 
+	public function get_route(): string
+	{
+		return $this->route;
+	}
+
 	public function get_method(): string
 	{
 		return $this->method;

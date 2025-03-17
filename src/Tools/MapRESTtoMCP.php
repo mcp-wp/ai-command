@@ -1,9 +1,11 @@
 <?php
 
-namespace WP_CLI\AiCommand;
+namespace WP_CLI\AiCommand\Tools;
 
 use WP_CLI\AiCommand\Entity\Tool;
+use WP_CLI\AiCommand\RouteInformation;
 use WP_CLI;
+use WP_REST_Controller;
 use WP_REST_Request;
 
 
@@ -100,7 +102,7 @@ class MapRESTtoMCP {
 						'callable' => function ( $inputs ) use ( $route, $method_name, $server ){
 							return $this->rest_callable( $inputs, $route, $method_name, $server );
 						},
-					] );
+					], [ 'wp-rest'] );
 
 					$tools[] = $tool;
 				}
