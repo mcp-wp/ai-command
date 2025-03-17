@@ -11,16 +11,45 @@
 
 Example:
 
-```
+```BASH
 wp ai "Calculate total for 5 tickets per 300$ each."
 ```
 ![calculate_total](./assets/calculate_total.gif)
+
+### Greet
+
+Example:
+
+```BASH
+wp ai "greet Hackathon"
+```
+
+### Generate image
+
+Example:
+
+```BASH
+$ wp ai "create image of tired hackathon developers winning the award for their project"
+
+I have generated an image of tired hackathon developers winning the award for their project. The image is stored at the following location: /private/tmp/ai-generated-imageazYgDI.png.
+
+$ modify image with id 118, add a big trofy to it
+
+Success: Image generated with ID: 119
+OK. I've added a big trophy to the image with ID 118. The new image has ID 119.
+```
+
+| 118 | 119 |
+| --- | --- |
+| ![118](./assets/ai-generated-imageazYgDI.png) | ![119](./assets/ai-generated-imageqr6WNd.png) |
+
+
 
 ## REST Controllers
 
 All exposed REST API controllers are automatically registered as a tool. The list can be obtained by running following command:
 
-```
+```BASH
 wp ai "list all available tools"
 ```
 
