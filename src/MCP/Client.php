@@ -212,13 +212,14 @@ class Client {
 			$candidates = $service
 				->get_model(
 					[
-						'feature'      => 'text-generation',
-						'tools'        => $tools,
-						'capabilities' => [
-							AI_Capability::MULTIMODAL_INPUT,
-							AI_Capability::TEXT_GENERATION,
-							AI_Capability::FUNCTION_CALLING,
-						],
+						'feature'          => 'text-generation',
+						// 'model'            => $model,
+						                     'tools'        => $tools,
+							'capabilities' => [
+								AI_Capability::MULTIMODAL_INPUT,
+								AI_Capability::TEXT_GENERATION,
+								AI_Capability::FUNCTION_CALLING,
+							],
 						// 'generationConfig' => Text_Generation_Config::from_array(
 						// 	array(
 						// 		'responseModalities' => array(
