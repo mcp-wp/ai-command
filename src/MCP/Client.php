@@ -42,7 +42,7 @@ class Client {
 		}
 
 		if ( isset( $response['error'] ) ) {
-			throw new Exception( 'JSON-RPC Error: ' . $response['error']['message'], $response['error']['code'] );
+			throw new Exception( 'JSON-RPC Error: ' . $response['error']['message'] . PHP_EOL . print_r( $params, 1 ), $response['error']['code'] );
 		}
 
 		return $response['result'];
@@ -122,7 +122,7 @@ class Client {
 				break;
 			}
 
-			return $image_id || 'no image found';
+			return ( isset( $image_id ) || 'no image found' );
 		}
 
 		// See https://github.com/felixarntz/ai-services/blob/main/docs/Accessing-AI-Services-in-PHP.md for further processing.
@@ -132,8 +132,20 @@ class Client {
 		return $image_url;
 	}
 
-	public function call_ai_service_with_prompt( string $prompt ) {
+	public function call_ai_service_with_prompt( string $input_prompt ) {
+		if ( empty( $input_prompt ) ) {
+			echo "How can I help you?" . PHP_EOL;
+			$prompt = \cli\prompt( '', false, '> ' );
+			return $this->call_ai_service_with_prompt( $prompt )	;
+		}
+
+		if ( $input_prompt === 'exit' || $input_prompt === 'quit' || $input_prompt === 'q' ) {
+			return "Bye!";
+		}
+
+		$prompt = apply_filters( 'ai_command_prompt', $input_prompt );
 		\WP_CLI::debug( "Prompt: {$prompt}", 'mcp_server' );
+
 		$parts = new Parts();
 		$parts->add_text_part( $prompt );
 
@@ -201,13 +213,13 @@ class Client {
 				->get_model(
 					[
 						'feature'          => 'text-generation',
-						// 'model'            => $model,
-						                     'tools'        => $tools,
-							'capabilities' => [
-								AI_Capability::MULTIMODAL_INPUT,
-								AI_Capability::TEXT_GENERATION,
-								AI_Capability::FUNCTION_CALLING,
-							],
+						'model'            => 'gpt-4o-mini',
+						'tools'        => $tools,
+						'capabilities' => [
+							AI_Capability::MULTIMODAL_INPUT,
+							AI_Capability::TEXT_GENERATION,
+							AI_Capability::FUNCTION_CALLING,
+						],
 						// 'generationConfig' => Text_Generation_Config::from_array(
 						// 	array(
 						// 		'responseModalities' => array(
