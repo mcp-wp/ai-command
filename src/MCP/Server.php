@@ -13,31 +13,6 @@ class Server {
 	private array $resources = [];
 
 	public function __construct() {
-		// Sample data (replace with your actual data handling)
-		$this->data['users']    = [
-			[
-				'id'    => 1,
-				'name'  => 'Alice',
-				'email' => 'alice@example.com',
-			],
-			[
-				'id'    => 2,
-				'name'  => 'Bob',
-				'email' => 'bob@example.com',
-			],
-		];
-		$this->data['products'] = [
-			[
-				'id'    => 101,
-				'name'  => 'Product A',
-				'price' => 20,
-			],
-			[
-				'id'    => 102,
-				'name'  => 'Product B',
-				'price' => 30,
-			],
-		];
 	}
 
 	public function register_tool( array $tool_definition ): void {
