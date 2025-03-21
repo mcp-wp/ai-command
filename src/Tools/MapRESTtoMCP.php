@@ -149,6 +149,10 @@ class MapRESTtoMCP {
 
 		WP_CLI::debug( 'Rest Route: ' . $route . ' ' . $method_name, 'mcp_server' );
 
+		if ( $inputs['meta'] === false || $inputs['meta'] === null || $inputs['meta'] === '' || $inputs['meta'] === [] ) {
+			unset( $inputs['meta'] );
+		}
+
 		foreach( $inputs as $key => $value ) {
 			WP_CLI::debug( '  param->' . $key . ' : ' . $value, 'mcp_server' );
 		}
