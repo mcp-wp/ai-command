@@ -42,7 +42,7 @@ class Client {
 		}
 
 		if ( isset( $response['error'] ) ) {
-			throw new Exception( 'JSON-RPC Error: ' . $response['error']['message'] . PHP_EOL . print_r( $params, 1 ), $response['error']['code'] );
+			throw new Exception( 'JSON-RPC Error: ' . $response['error']['message'], $response['error']['code'] );
 		}
 
 		return $response['result'];
@@ -212,8 +212,7 @@ class Client {
 			$candidates = $service
 				->get_model(
 					[
-						'feature'          => 'text-generation',
-						'model'            => 'gpt-4o-mini',
+						'feature'      => 'text-generation',
 						'tools'        => $tools,
 						'capabilities' => [
 							AI_Capability::MULTIMODAL_INPUT,
