@@ -32,6 +32,11 @@ class MediaManager {
 		$attach_data = wp_generate_attachment_metadata($attach_id, $new_file_path);
 		wp_update_attachment_metadata($attach_id, $attach_data);
 
+		// Update alt text
+		if($title) {
+			update_post_meta($attach_id, '_wp_attachment_image_alt', $title);
+		}
+
 		return $attach_id;
 
 	}
