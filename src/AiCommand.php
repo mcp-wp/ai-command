@@ -59,7 +59,12 @@ class AiCommand extends WP_CLI_Command {
 		$this->register_tools($this->server);
 		$this->register_resources($this->server);
 
-		$result = $this->client->call_ai_service_with_prompt( $args[0] );
+		$prompt = '';
+		if ( isset( $args[0] ) ) {
+			$prompt = $args[0];
+		}
+
+		$result = $this->client->call_ai_service_with_prompt( $prompt );
 
 		WP_CLI::success( $result );
 	}
