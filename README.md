@@ -26,13 +26,9 @@ The _MCP Host_, gets information (such as list of available tools) from the serv
 
 ## Installing
 
-Installing this package requires WP-CLI v2.5 or greater. Update to the latest stable release with `wp cli update`.
+Installing this package requires WP-CLI v2.11 or greater. Update to the latest stable release with `wp cli update`.
 
-Once you've done so, you can install the latest stable version of this package with:
-
-```bash
-wp package install swissspidy/ai-command:@stable
-```
+Tip: for better on support of the latest PHP versions, use the v2.12 nightly build with `wp cli update --nightly`.
 
 To install the latest development version of this package, use the following command instead:
 
@@ -61,6 +57,19 @@ Once you’ve done a bit of searching and discovered there isn’t an open or fi
 Want to contribute a new feature? Please first [open a new issue](https://github.com/swissspidy/ai-command/issues/new) to discuss whether the feature is a good fit for the project.
 
 Once you've decided to commit the time to seeing your pull request through, [please follow our guidelines for creating a pull request](https://make.wordpress.org/cli/handbook/pull-requests/) to make sure it's a pleasant experience. See "[Setting up](https://make.wordpress.org/cli/handbook/pull-requests/#setting-up)" for details specific to working on this package locally.
+
+### Cloudfest Hackathon Contributors
+
+- Pascal Birchler - [@swissspidy](https://github.com/swissspidy)
+- Jan-Willem Oostendorp - [@janw-me](https://github.com/janw-me)
+- Joost de Valk - [@jdevalk](https://github.com/jdevalk)
+- Marco Chiesi - [@marcochiesi](https://github.com/marcochiesi)
+- Matt Biscay - [@skyminds](https://github.com/skyminds)
+- Moritz Bappert - [@moritzbappert](https://github.com/moritzbappert)
+- James Hunt - [@thetwopct](https://github.com/thetwopct)
+- Tome Pajkovski - [@tomepajk](https://github.com/tomepajk)
+- David Mosterd - [@davidmosterd](https://github.com/davidmosterd)
+- Milana Cap - [@zzap](https://github.com/zzap)
 
 ## Support
 

@@ -59,26 +59,36 @@ class AiCommand extends WP_CLI_Command {
 		$this->register_tools($this->server);
 		$this->register_resources($this->server);
 
-		$result = $this->client->call_ai_service_with_prompt( $args[0] );
+		$prompt = '';
+		if ( isset( $args[0] ) ) {
+			$prompt = $args[0];
+		}
+
+		$result = $this->client->call_ai_service_with_prompt( $prompt );
 
 		WP_CLI::success( $result );
 	}
 
 	// Register tools for AI processing
 	private function register_tools($server) : void {
+		// TODO; Is this the correct place? Or should the server already have the tools registered?
 		$filters = apply_filters( 'wp_cli/ai_command/command/filters', [] );
+		$tools = $this->tools->find_all( $filters );
 
-		foreach( $this->tools->find_all( $filters ) as $tool ) {
+		foreach( $tools as $tool ) {
 			$server->register_tool( $tool->get_data() );
 		}
 
-		return;
-
-		new FileTools( $server );
-		new URLTools( $server );
+		$this->register_media_resources($server);
 	}
 
-	// Register resources for AI access
+	/**
+	 * Register resources for AI access
+	 *
+	 * TODO remove this function.
+	 * A) it does not belong here
+	 * B) it is not used*
+	 */
 	private function register_resources( $server ) {
 		// Register Users resource
 		$server->register_resource(
@@ -99,6 +109,75 @@ class AiCommand extends WP_CLI_Command {
 				'description' => 'Product catalog',
 				'mimeType'    => 'application/json',
 				'filePath'    => './products.json', // Data will be fetched from products.json
+	}
+
+	/**
+	 * TODO Move Probably don't want this in the command class.
+	 */
+	protected function register_media_resources( $server ) {
+
+		$args = array(
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+			'posts_per_page' => - 1,
+		);
+
+		$media_items = get_posts( $args );
+
+		foreach ( $media_items as $media ) {
+
+			$media_id    = $media->ID;
+			$media_url   = wp_get_attachment_url( $media_id );
+			$media_type  = get_post_mime_type( $media_id );
+			$media_title = get_the_title( $media_id );
+
+			$server->register_resource(
+				[
+					'name'        => 'media_' . $media_id,
+					'uri'         => 'media://' . $media_id,
+					'description' => $media_title,
+					'mimeType'    => $media_type,
+					'callable'    => function () use ( $media_id, $media_url, $media_type ) {
+						$data = [
+							'id'        => $media_id,
+							'url'       => $media_url,
+							'filepath'  => get_attached_file( $media_id ),
+							'alt'       => get_post_meta( $media_id, '_wp_attachment_image_alt', true ),
+							'mime_type' => $media_type,
+							'metadata'  => wp_get_attachment_metadata( $media_id ),
+						];
+
+						return $data;
+					},
+				]
+			);
+		}
+
+		// Also register a media collection resource
+		$server->register_resource(
+			[
+				'name'        => 'media_collection',
+				'uri'         => 'data://media',
+				'description' => 'Collection of all media items',
+				'mimeType'    => 'application/json',
+				'callable'    => function () {
+
+					$args = array(
+						'post_type'      => 'attachment',
+						'post_status'    => 'inherit',
+						'posts_per_page' => - 1,
+						'fields'         => 'ids',
+					);
+
+					$media_ids = get_posts( $args );
+					$media_map = [];
+
+					foreach ( $media_ids as $id ) {
+						$media_map[ $id ] = 'media://' . $id;
+					}
+
+					return $media_map;
+				},
 			]
 		);
 	}

@@ -13,31 +13,6 @@ class Server {
 	private array $resources = [];
 
 	public function __construct() {
-		// Sample data (replace with your actual data handling)
-		$this->data['users']    = [
-			[
-				'id'    => 1,
-				'name'  => 'Alice',
-				'email' => 'alice@example.com',
-			],
-			[
-				'id'    => 2,
-				'name'  => 'Bob',
-				'email' => 'bob@example.com',
-			],
-		];
-		$this->data['products'] = [
-			[
-				'id'    => 101,
-				'name'  => 'Product A',
-				'price' => 20,
-			],
-			[
-				'id'    => 102,
-				'name'  => 'Product B',
-				'price' => 30,
-			],
-		];
 	}
 
 	public function register_tool( array $tool_definition ): void {
@@ -211,9 +186,15 @@ class Server {
 		];
 	}
 
-	private function get_resource_data( $mcp_resource ) {
+	public function get_resource_data( $mcp_resource ) {
 		// Replace this with your actual logic to access the resource data
 		// based on the resource definition.
+
+		if ( str_starts_with( $mcp_resource, 'media://' ) ) {
+			return $this->get_media_data( $mcp_resource );
+		}
+
+
 
 		// Example: If the resource is a file, read the file contents.
 		if ( isset( $mcp_resource['filePath'] ) ) {
@@ -228,6 +209,16 @@ class Server {
 		//... other data access logic...
 
 		throw new Exception( 'Unable to access resource data.' );
+	}
+
+	private function get_media_data( $mcp_resource ) {
+
+		foreach ( $this->resources as $resource ) {
+			if ( $resource['uri'] === $mcp_resource ) {
+					$callback_response = $resource['callable']();
+					return $callback_response;
+			}
+		}
 	}
 
 	// TODO: use a dedicated JSON schema validator library

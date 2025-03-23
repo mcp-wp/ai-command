@@ -27,10 +27,8 @@ WP_CLI::add_command( 'ai', static function ( $args, $assoc_args ) {
 
 	$tools = new ToolCollection();
 
-	// TODO Register your tool here and add it to the collection
-
 	$all_tools = [
-		...(new ImageTools($client))->get_tools(),
+		...(new ImageTools($client, $server))->get_tools(),
 		...(new CommunityEvents($client))->get_tools(),
 		...(new MiscTools($server))->get_tools(),
 		...(new URLTools($server))->get_tools(),
