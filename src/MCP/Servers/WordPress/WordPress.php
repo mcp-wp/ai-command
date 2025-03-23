@@ -19,8 +19,24 @@ class WordPress extends Server {
 			...( new ImageTools() )->get_tools(),
 		];
 
+		/**
+		 * Filters all the tools exposed by the WordPress MCP server.
+		 *
+		 * @param array $all_tools MCP tools.
+		 */
+		$all_tools = apply_filters( 'ai_command_wordpress_tools', $all_tools );
+
 		foreach ( $all_tools as $tool ) {
 			$this->register_tool( $tool );
 		}
+
+		/**
+		 * Fires after tools have been registered in the WordPress MCP server.
+		 *
+		 * Can be used to register additional tools.
+		 *
+		 * @param Server $server WordPress MCP server instance.
+		 */
+		do_action( 'ai_command_wordpress_tools_loaded', $this );
 	}
 }
