@@ -146,8 +146,10 @@ readonly class RestApi {
 
 		$this->logger->debug( 'Rest Route: ' . $route . ' ' . $method_name );
 
-		if ( false === $inputs['meta'] || null === $inputs['meta'] || '' === $inputs['meta'] || [] === $inputs['meta'] ) {
-			unset( $inputs['meta'] );
+		if ( isset( $inputs['meta'] ) ) {
+			if ( false === $inputs['meta'] || '' === $inputs['meta'] || [] === $inputs['meta'] ) {
+				unset( $inputs['meta'] );
+			}
 		}
 
 		foreach ( $inputs as $key => $value ) {
