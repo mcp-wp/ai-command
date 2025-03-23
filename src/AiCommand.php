@@ -2,183 +2,168 @@
 
 namespace WP_CLI\AiCommand;
 
-use WP_CLI\AiCommand\ToolRepository\CollectionToolRepository;
-use WP_CLI\AiCommand\Tools\FileTools;
-use WP_CLI\AiCommand\Tools\URLTools;
-use WP_CLI;
+use Mcp\Client\Client;
+use Mcp\Client\ClientSession;
+use Mcp\Client\Transport\StdioServerParameters;
+use WP_CLI\AiCommand\AI\AiClient;
+use WP_CLI\AiCommand\Utils\CliLogger;
+use WP_CLI\AiCommand\Utils\McpConfig;
+use WP_CLI\Utils;
 use WP_CLI_Command;
-use WP_Community_Events;
-use WP_Error;
 
 /**
+ * AI command class.
  *
- * Resources: File-like data that can be read by clients (like API responses or file contents)
- * Tools: Functions that can be called by the LLM (with user approval)
- * Prompts: Pre-written templates that help users accomplish specific tasks
- *
- * MCP follows a client-server architecture where:
- *
- * Hosts are LLM applications (like Claude Desktop or IDEs) that initiate connections
- * Clients maintain 1:1 connections with servers, inside the host application
- * Servers provide context, tools, and prompts to clients
+ * Allows interacting with an LLM using MCP.
  */
 class AiCommand extends WP_CLI_Command {
 
-	public function __construct(
-		private CollectionToolRepository $tools,
-		private WP_CLI\AiCommand\MCP\Server $server,
-		private WP_CLI\AiCommand\MCP\Client $client
-	) {
-		parent::__construct();
-	}
-
 	/**
-	 * Greets the world.
+	 * AI prompt.
 	 *
 	 * ## OPTIONS
 	 *
-	 *  <prompt>
-	 *  : AI prompt.
+	 * <prompt>
+	 * : AI prompt.
+	 *
+	 * [--skip-wordpress]
+	 * : Run command without loading WordPress. (Not implemented yet)
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     # Greet the world.
+	 *     # Get data from WordPress
 	 *     $ wp ai "What are the titles of my last three posts?"
-	 *     Success: Hello World!
+	 *     - Hello world
+	 *     - My awesome post
+	 *     - Another post
 	 *
-	 *     # Greet the world.
-	 *     $ wp ai "create 10 test posts about swiss recipes and include generated featured images"
-	 *     Success: Hello World!
+	 *     # Interact with multiple MCP servers.
+	 *     $ wp ai "Take file foo.txt and create a new blog post from it"
+	 *     Success: Blog post created.
 	 *
-	 * @when after_wp_load
+	 * @when before_wp_load
 	 *
 	 * @param array $args Indexed array of positional arguments.
 	 * @param array $assoc_args Associative array of associative arguments.
 	 */
 	public function __invoke( $args, $assoc_args ) {
-		$this->register_tools($this->server);
-		$this->register_resources($this->server);
-
-		$prompt = '';
-		if ( isset( $args[0] ) ) {
-			$prompt = $args[0];
+		$with_wordpress = null === Utils\get_flag_value( $assoc_args, 'skip-wordpress' );
+		if ( $with_wordpress ) {
+			\WP_CLI::get_runner()->load_wordpress();
+		} else {
+			// TODO: Implement.
+			\WP_CLI::error( 'Not implemented yet' );
 		}
 
-		$result = $this->client->call_ai_service_with_prompt( $prompt );
+		$sessions = $this->get_sessions( $with_wordpress );
+		$tools    = $this->get_tools( $sessions );
 
-		WP_CLI::success( $result );
-	}
+		$ai_client = new AiClient(
+			$tools,
+			static function ( $tool_name, $tool_args ) use ( $sessions ) {
+				// Find the right tool from the right server.
+				foreach ( $sessions as $session ) {
+					foreach ( $session->listTools()->tools as $mcp_tool ) {
+						if ( $tool_name === $mcp_tool->name ) {
+							$result = $session->callTool( $tool_name, $tool_args );
+							// TODO: Convert ImageContent or EmbeddedResource into Blob?
 
-	// Register tools for AI processing
-	private function register_tools($server) : void {
-		// TODO; Is this the correct place? Or should the server already have the tools registered?
-		$filters = apply_filters( 'wp_cli/ai_command/command/filters', [] );
-		$tools = $this->tools->find_all( $filters );
+							// To trigger the jsonSerialize() methods.
+							// TODO: Return all array items, not just first one.
+							return json_decode( json_encode( $result->content[0] ), true );
+						}
+					}
+				}
 
-		foreach( $tools as $tool ) {
-			$server->register_tool( $tool->get_data() );
-		}
+				return null;
+			}
+		);
 
-		$this->register_media_resources($server);
+		$ai_client->call_ai_service_with_prompt( $args[0] );
 	}
 
 	/**
-	 * Register resources for AI access
+	 * Returns a combined list of all tools for all existing MCP client sessions.
 	 *
-	 * TODO remove this function.
-	 * A) it does not belong here
-	 * B) it is not used*
+	 * @param array $sessions List of available sessions.
+	 * @return array List of tools.
 	 */
-	private function register_resources( $server ) {
-		// Register Users resource
-		$server->register_resource(
-			[
-				'name'        => 'users',
-				'uri'         => 'data://users',
-				'description' => 'List of users',
-				'mimeType'    => 'application/json',
-				'dataKey'     => 'users', // Data will be fetched from 'users'
-			]
-		);
+	protected function get_tools( array $sessions ): array {
+		$function_declarations = [];
 
-		// Register Product Catalog resource
-		$server->register_resource(
-			[
-				'name'        => 'product_catalog',
-				'uri'         => 'file://./products.json',
-				'description' => 'Product catalog',
-				'mimeType'    => 'application/json',
-				'filePath'    => './products.json', // Data will be fetched from products.json
+		foreach ( $sessions as $session ) {
+			foreach ( $session->listTools()->tools as $mcp_tool ) {
+				$parameters = json_decode( json_encode( $mcp_tool->inputSchema->jsonSerialize() ), true );
+				unset( $parameters['additionalProperties'], $parameters['$schema'] );
+
+				// Not having any properties doesn't seem to work.
+				if ( empty( $parameters['properties'] ) ) {
+					$parameters['properties'] = [
+						'dummy' => [
+							'type' => 'string',
+						],
+					];
+				}
+
+				// FIXME: had some issues with the inputSchema here.
+				if ( 'edit_file' === $mcp_tool->name || 'search_files' === $mcp_tool->name ) {
+					continue;
+				}
+
+				$function_declarations[] = [
+					'name'        => $mcp_tool->name,
+					'description' => $mcp_tool->description,
+					'parameters'  => $parameters,
+				];
+			}
+		}
+
+		return $function_declarations;
 	}
 
 	/**
-	 * TODO Move Probably don't want this in the command class.
+	 * Returns a list of MCP client sessions for each MCP server that is configured.
+	 *
+	 * @param bool $with_wordpress Whether a session for the built-in WordPress MCP server should be created.
+	 * @return ClientSession[]
 	 */
-	protected function register_media_resources( $server ) {
+	public function get_sessions( bool $with_wordpress ): array {
+		$sessions = [];
 
-		$args = array(
-			'post_type'      => 'attachment',
-			'post_status'    => 'inherit',
-			'posts_per_page' => - 1,
+		// The WP-CLI MCP server is always available.
+		$sessions[] = ( new MCP\Client( new CliLogger() ) )->connect(
+			MCP\Servers\WP_CLI\WP_CLI::class
 		);
 
-		$media_items = get_posts( $args );
-
-		foreach ( $media_items as $media ) {
-
-			$media_id    = $media->ID;
-			$media_url   = wp_get_attachment_url( $media_id );
-			$media_type  = get_post_mime_type( $media_id );
-			$media_title = get_the_title( $media_id );
-
-			$server->register_resource(
-				[
-					'name'        => 'media_' . $media_id,
-					'uri'         => 'media://' . $media_id,
-					'description' => $media_title,
-					'mimeType'    => $media_type,
-					'callable'    => function () use ( $media_id, $media_url, $media_type ) {
-						$data = [
-							'id'        => $media_id,
-							'url'       => $media_url,
-							'filepath'  => get_attached_file( $media_id ),
-							'alt'       => get_post_meta( $media_id, '_wp_attachment_image_alt', true ),
-							'mime_type' => $media_type,
-							'metadata'  => wp_get_attachment_metadata( $media_id ),
-						];
-
-						return $data;
-					},
-				]
+		if ( $with_wordpress ) {
+			$sessions[] = ( new MCP\Client( new CliLogger() ) )->connect(
+				MCP\Servers\WordPress\WordPress::class
 			);
 		}
 
-		// Also register a media collection resource
-		$server->register_resource(
-			[
-				'name'        => 'media_collection',
-				'uri'         => 'data://media',
-				'description' => 'Collection of all media items',
-				'mimeType'    => 'application/json',
-				'callable'    => function () {
+		$servers = array_values( ( new McpConfig() )->get_config() );
 
-					$args = array(
-						'post_type'      => 'attachment',
-						'post_status'    => 'inherit',
-						'posts_per_page' => - 1,
-						'fields'         => 'ids',
-					);
+		foreach ( $servers as $args ) {
+			if ( str_starts_with( $args, 'http://' ) || str_starts_with( $args, 'https://' ) ) {
+				$sessions[] = ( new Client() )->connect(
+					$args
+				);
+			} else {
+				$args          = explode( ' ', $args );
+				$cmd           = array_shift( $args );
+				$server_params = new StdioServerParameters(
+					$cmd,
+					$args
+				);
 
-					$media_ids = get_posts( $args );
-					$media_map = [];
+				$sessions[] = ( new Client() )->connect(
+					$server_params->getCommand(),
+					$server_params->getArgs(),
+					$server_params->getEnv()
+				);
+			}
+		}
 
-					foreach ( $media_ids as $id ) {
-						$media_map[ $id ] = 'media://' . $id;
-					}
-
-					return $media_map;
-				},
-			]
-		);
+		return $sessions;
 	}
 }

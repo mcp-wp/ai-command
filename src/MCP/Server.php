@@ -2,17 +2,80 @@
 
 namespace WP_CLI\AiCommand\MCP;
 
-use Exception;
-use WP_CLI;
 use InvalidArgumentException;
+use Mcp\Server\NotificationOptions;
+use Mcp\Server\Server as McpServer;
+use Mcp\Shared\ErrorData;
+use Mcp\Shared\McpError;
+use Mcp\Shared\Version;
+use Mcp\Types\CallToolResult;
+use Mcp\Types\Implementation;
+use Mcp\Types\InitializeResult;
+use Mcp\Types\JSONRPCError;
+use Mcp\Types\JsonRpcErrorObject;
+use Mcp\Types\JsonRpcMessage;
+use Mcp\Types\JSONRPCResponse;
+use Mcp\Types\ListResourcesResult;
+use Mcp\Types\ListToolsResult;
+use Mcp\Types\ReadResourceResult;
+use Mcp\Types\RequestId;
+use Mcp\Types\Resource;
+use Mcp\Types\Result;
+use Mcp\Types\TextContent;
+use Mcp\Types\TextResourceContents;
+use Mcp\Types\Tool;
+use Mcp\Types\ToolInputSchema;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 class Server {
+	private array $data = [];
 
-	private array $data      = [];
-	private array $tools     = [];
+	/**
+	 * @var array<string, Tool>
+	 */
+	private array $tools = [];
+
+	/**
+	 * @var Array<Resource>
+	 */
 	private array $resources = [];
 
-	public function __construct() {
+	protected McpServer $mcp_server;
+
+	protected LoggerInterface $logger;
+
+	public function __construct( private readonly string $name, ?LoggerInterface $logger = null ) {
+		$this->logger = $logger ?? new NullLogger();
+
+		$this->mcp_server = new McpServer( $name, $this->logger );
+
+		$this->mcp_server->registerHandler(
+			'initialize',
+			[ $this, 'initialize' ]
+		);
+
+		$this->mcp_server->registerHandler(
+			'tools/list',
+			[ $this, 'list_tools' ]
+		);
+
+		$this->mcp_server->registerHandler(
+			'tools/call',
+			[ $this, 'call_tool' ]
+		);
+
+		$this->mcp_server->registerHandler(
+			'resources/list',
+			[ $this, 'list_resources' ]
+		);
+
+		$this->mcp_server->registerHandler(
+			'resources/read',
+			[ $this, 'read_resources' ]
+		);
+
+		// TODO: Implement resources/templates/list
 	}
 
 	public function register_tool( array $tool_definition ): void {
@@ -25,18 +88,108 @@ class Server {
 		$description  = $tool_definition['description'] ?? null;
 		$input_schema = $tool_definition['inputSchema'] ?? null;
 
-		// TODO: This is a temporary limit.
-		if ( count( $this->tools ) >= 128 ) {
-			WP_CLI::debug( 'Too many tools, max is 128', 'tools' );
-			return;
-		}
-
 		$this->tools[ $name ] = [
-			'name'        => $name,
+			'tool'        => new Tool(
+				$name,
+				ToolInputSchema::fromArray(
+					$input_schema,
+				),
+				$description
+			),
 			'callable'    => $callable,
-			'description' => $description,
 			'inputSchema' => $input_schema,
 		];
+	}
+
+	public function initialize(): InitializeResult {
+		return new InitializeResult(
+			capabilities: $this->mcp_server->getCapabilities( new NotificationOptions(), [] ),
+			serverInfo: new Implementation(
+				$this->name,
+				'0.0.1', // TODO: Make dynamic.
+			),
+			protocolVersion: Version::LATEST_PROTOCOL_VERSION
+		);
+	}
+
+	// TODO: Implement pagination, see https://spec.modelcontextprotocol.io/specification/2024-11-05/server/utilities/pagination/#response-format
+	// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
+	public function list_tools( $params ): ListToolsResult {
+		$prepared_tools = [];
+		foreach ( $this->tools as $tool ) {
+			$prepared_tools[] = $tool['tool'];
+		}
+
+		return new ListToolsResult( $prepared_tools );
+	}
+
+	public function call_tool( $params ): CallToolResult {
+		$found_tool = null;
+		foreach ( $this->tools as $name => $tool ) {
+			if ( $name === $params->name ) {
+				$found_tool = $tool;
+				break;
+			}
+		}
+
+		if ( ! $found_tool ) {
+			throw new InvalidArgumentException( "Unknown tool: {$params->name}" );
+		}
+
+		$result = call_user_func( $found_tool['callable'], $params->arguments );
+
+		if ( $result instanceof CallToolResult ) {
+			return $result;
+		}
+
+		if ( is_wp_error( $result ) ) {
+			return new CallToolResult(
+				[
+					new TextContent(
+						$result->get_error_message()
+					),
+				],
+				true
+			);
+		}
+
+		if ( is_string( $result ) ) {
+			$result = [ new TextContent( $result ) ];
+		}
+
+		if ( ! is_array( $result ) ) {
+			$result = [ $result ];
+		}
+		return new CallToolResult( $result );
+	}
+
+	// TODO: Implement pagination, see https://spec.modelcontextprotocol.io/specification/2024-11-05/server/utilities/pagination/#response-format
+	// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
+	public function list_resources( $params ) {
+		$resource = new Resource(
+			'Greeting Text',
+			'example://greeting',
+			'A simple greeting message',
+			'text/plain'
+		);
+		return new ListResourcesResult( [ $resource ] );
+	}
+
+	public function read_resources( $params ) {
+		$uri = $params->uri;
+		if ( 'example://greeting' !== $uri ) {
+			throw new InvalidArgumentException( "Unknown resource: {$uri}" );
+		}
+
+		return new ReadResourceResult(
+			[
+				new TextResourceContents(
+					'Hello from the example MCP server!',
+					$uri,
+					'text/plain'
+				),
+			]
+		);
 	}
 
 	public function register_resource( array $resource_definition ) {
@@ -48,250 +201,129 @@ class Server {
 		$this->resources[ $resource_definition['name'] ] = $resource_definition;
 	}
 
-	public function get_capabilities(): array {
-		$capabilities = [
-			'version'        => '1.0', // MCP version (adjust as needed)
-			'methods'        => [],
-			'data_resources' => [],
-		];
+	/**
+	 * Processes an incoming message from the client.
+	 */
+	public function handle_message( JsonRpcMessage $message ) {
+		$this->logger->debug( 'Received message: ' . json_encode( $message ) );
 
-		foreach ( $this->tools as $tool ) { // Iterate through the tools array
-			$capabilities['methods'][] = [ // Add each tool as an element in the array
-				'name'        => $tool['name'],
-				'description' => $tool['description'],
-				'inputSchema' => $tool['inputSchema'],
-			];
-		}
-
-		// Add data resources
-		// Add resources to capabilities
-		foreach ( $this->resources as $resource ) {
-			$capabilities['data_resources'] = [
-				'name' => $resource['name'],
-				// You can add more details about the resource here if needed
-			];
-		}
-
-		return $capabilities;
-	}
-
-	public function handle_request( string $request_data ): false|string {
-		$request = json_decode( $request_data, true );
-
-		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			return $this->create_error_response( null, 'Invalid JSON', - 32700 ); // Parse error
-		}
-
-		if ( ! isset( $request['jsonrpc'] ) || '2.0' !== $request['jsonrpc'] ) {
-			return $this->create_error_response( $request['id'] ?? null, 'Invalid JSON-RPC version', - 32600 ); // Invalid Request
-		}
-
-		if ( ! isset( $request['method'] ) ) {
-			return $this->create_error_response( $request['id'] ?? null, 'Missing method', - 32600 ); // Invalid Request
-		}
-
-		$method = $request['method'];
-		$params = $request['params'] ?? [];
-		$id     = $request['id'] ?? null;
-
-		if ( 'get_capabilities' === $method ) { // Handle capabilities request
-			$capabilities = $this->get_capabilities();
-
-			return $this->create_success_response( $id, $capabilities );
-		}
+		$inner_message = $message->message;
 
 		try {
-			// Check if it's a data access request (starts with "get_")
-			if ( str_starts_with( $method, 'get_' ) ) {
-				$resource = substr( $method, 4 ); // Extract the resource name (e.g., "users" from "get_users")
-
-				if ( isset( $this->data[ $resource ] ) ) {
-					$result = $this->handle_get_request( '/' . $resource, $params ); // Re-use handleGetRequest
-				} elseif ( isset( $this->data[ "{$resource}s" ] ) ) {
-					$result = $this->handle_get_request( '/' . "{$resource}s", $params ); // Re-use handleGetRequest
-				} else {
-					return $this->create_error_response( $id, 'Resource not found', - 32601 ); // Method not found
-				}
-			} elseif ( 'resources/list' === $method ) {
-				$result = $this->list_resources();
-			} elseif ( 'resources/read' === $method ) {
-				$result = $this->read_resource( $params['uri'] ?? null );
-			} else {  // Treat as a tool call
-
-				$tool = $this->tools[ $method ] ?? null;
-				if ( ! $tool ) {
-					return $this->create_error_response( $id, 'Method not found', - 32601 );
-				}
-
-				// Validate input parameters against the schema
-				$input_schema = $tool['inputSchema'] ?? null;
-				if ( $input_schema ) {
-					$is_valid = $this->validate_input( $params, $input_schema );
-					if ( ! $is_valid['valid'] ) {
-						return $this->create_error_response( $id, 'Invalid input parameters: ' . implode( ', ', $is_valid['errors'] ), - 32602 ); // Invalid params
-					}
-				}
-
-				$result = call_user_func( $tool['callable'], $params );  // Call the 'callable' property
-
-				return $this->create_success_response( $id, $result ); // Return success immediately
-
+			if ( $inner_message instanceof \Mcp\Types\JSONRPCRequest ) {
+				// It's a request
+				return $this->process_request( $inner_message );
 			}
 
-			return $this->create_success_response( $id, $result );
-
-		} catch ( Exception $e ) {
-			return $this->create_error_response( $id, $e->getMessage(), - 32000 ); // Application error
-		}
-	}
-
-	public function list_resources() {
-		$result = [];
-		foreach ( $this->resources as $resource ) {
-			$result[] = [
-				'uri'         => $resource['uri'],
-				'name'        => $resource['name'],
-				'description' => $resource['description'] ?? null,
-				'mimeType'    => $resource['mimeType'] ?? null,
-			];
-		}
-
-		return $result;
-	}
-
-	private function read_resource( $uri ) {
-		// Find the resource by URI
-		$resource = null;
-		foreach ( $this->resources as $r ) {
-			if ( $r['uri'] === $uri ) {
-				$resource = $r;
-				break;
+			if ( $inner_message instanceof \Mcp\Types\JSONRPCNotification ) {
+				// It's a notification
+				$this->process_notification( $inner_message );
+				return null;
 			}
-		}
 
-		if ( ! $resource ) {
-			throw new Exception( 'Resource not found.' );
-		}
-
-		// Access the resource data (replace with your actual data access logic)
-		$data = $this->get_resource_data( $resource );
-
-		// Determine if it's text or binary
-		$is_binary = isset( $resource['mimeType'] ) && ! str_starts_with( $resource['mimeType'], 'text/' );
-
-		return [
-			'uri'                            => $resource['uri'],
-			'mimeType'                       => $resource['mimeType'] ?? null,
-			( $is_binary ? 'blob' : 'text' ) => $data,
-		];
-	}
-
-	public function get_resource_data( $mcp_resource ) {
-		// Replace this with your actual logic to access the resource data
-		// based on the resource definition.
-
-		if ( str_starts_with( $mcp_resource, 'media://' ) ) {
-			return $this->get_media_data( $mcp_resource );
-		}
-
-
-
-		// Example: If the resource is a file, read the file contents.
-		if ( isset( $mcp_resource['filePath'] ) ) {
-			return file_get_contents( $mcp_resource['filePath'] );
-		}
-
-		// Example: If the resource is in the $data array, return the data.
-		if ( isset( $mcp_resource['dataKey'] ) ) {
-			return $this->data[ $mcp_resource['dataKey'] ];
-		}
-
-		//... other data access logic...
-
-		throw new Exception( 'Unable to access resource data.' );
-	}
-
-	private function get_media_data( $mcp_resource ) {
-
-		foreach ( $this->resources as $resource ) {
-			if ( $resource['uri'] === $mcp_resource ) {
-					$callback_response = $resource['callable']();
-					return $callback_response;
+			// Server does not expect responses from client; ignore or log
+			$this->logger->warning( 'Received unexpected message type: ' . get_class( $inner_message ) );
+		} catch ( McpError $e ) {
+			if ( $inner_message instanceof \Mcp\Types\JSONRPCRequest ) {
+				return $this->send_error( $inner_message->id, $e->error );
+			}
+		} catch ( \Exception $e ) {
+			$this->logger->error( 'Error handling message: ' . $e->getMessage() );
+			if ( $inner_message instanceof \Mcp\Types\JSONRPCRequest ) {
+				// Code -32603 is Internal error as per JSON-RPC spec
+				return $this->send_error(
+					$inner_message->id,
+					new ErrorData(
+						-32603,
+						$e->getMessage()
+					)
+				);
 			}
 		}
 	}
 
-	// TODO: use a dedicated JSON schema validator library
-	private function validate_input( $input, $schema ): array {
-		$errors = [];
-		foreach ( $schema['properties'] ?? [] as $param_name => $param_schema ) {
-			if ( isset( $param_schema['required'] ) && true === $param_schema['required'] && ! isset( $input[ $param_name ] ) ) {
-				$errors[] = $param_name . ' is required';
-			}
-			// Add more validation rules as needed (e.g., type checking)
-			if ( isset( $input[ $param_name ], $param_schema['type'] ) ) {
-				$input_type = gettype( $input[ $param_name ] );
-				if ( $input_type !== $param_schema['type'] ) {
-					$errors[] = $param_name . ' must be of type ' . $param_schema['type'] . ' but ' . $input_type . ' was given.';
-				}
-			}
+	/**
+	 * Processes a JSONRPCRequest message.
+	 */
+	private function process_request( \Mcp\Types\JSONRPCRequest $request ): JsonRpcMessage {
+		$method   = $request->method;
+		$handlers = $this->mcp_server->getHandlers();
+		$handler  = $handlers[ $method ] ?? null;
+
+		if ( null === $handler ) {
+			throw new McpError(
+				new ErrorData(
+					-32601, // Method not found
+					"Method not found: {$method}"
+				)
+			);
 		}
 
-		return [
-			'valid'  => empty( $errors ),
-			'errors' => $errors,
-		];
-	}
+		$params = $request->params ?? null;
+		$result = $handler( $params );
 
-	private function handle_get_request( $path, $params ) {
-		$parts    = explode( '/', ltrim( $path, '/' ) );
-		$resource = $parts[0];
-		$id       = $params['id'] ?? null; // Simplified parameter handling
-
-		if ( isset( $this->data[ $resource ] ) ) {
-			$data = $this->data[ $resource ];
-
-			if ( null !== $id ) {
-				foreach ( $data as $item ) {
-					if ( $item['id'] === $id ) {
-						return $item;
-					}
-				}
-				throw new Exception( 'Resource not found' );
-			}
-
-			return $data;
+		if ( ! $result instanceof Result ) {
+			$result = new Result();
 		}
 
-		throw new Exception( 'Resource not found' );
+		return $this->send_response( $request->id, $result );
 	}
 
-	private function create_success_response( $id, $result ): false|string {
-		return json_encode(
-			[
-				'jsonrpc' => '2.0',
-				'result'  => $result,
-				'id'      => $id,
-			],
-			JSON_THROW_ON_ERROR
+	/**
+	 * Processes a JSONRPCNotification message.
+	 */
+	private function process_notification( \Mcp\Types\JSONRPCNotification $notification ): void {
+		$method   = $notification->method;
+		$handlers = $this->mcp_server->getNotificationHandlers();
+		$handler  = $handlers[ $method ] ?? null;
+
+		if ( null !== $handler ) {
+			$params = $notification->params ?? null;
+			$handler( $params );
+		}
+
+		$this->logger->warning( "No handler registered for notification method: $method" );
+	}
+
+	/**
+	 * Sends a response to a request.
+	 *
+	 * @param RequestId $id The request ID to respond to.
+	 * @param Result $result The result object.
+	 */
+	private function send_response( RequestId $id, Result $result ): JsonRpcMessage {
+		// Create a JSONRPCResponse object and wrap in JsonRpcMessage
+		$response = new JSONRPCResponse(
+			'2.0',
+			$id,
+			$result
 		);
+		$response->validate();
+
+		return new JsonRpcMessage( $response );
 	}
 
-	private function create_error_response( $id, $message, $code ): false|string {
-		return json_encode(
-			[
-				'jsonrpc' => '2.0',
-				'error'   => [
-					'code'    => $code,
-					'message' => $message,
-				],
-				'id'      => $id,
-			],
-			JSON_THROW_ON_ERROR
+
+	/**
+	 * Sends an error response to a request.
+	 *
+	 * @param RequestId $id The request ID to respond to.
+	 * @param ErrorData $error The error data.
+	 */
+	private function send_error( RequestId $id, ErrorData $error ): JsonRpcMessage {
+		$error_object = new JsonRpcErrorObject(
+			$error->code,
+			$error->message,
+			$error->data ?? null
 		);
-	}
 
-	public function process_request( $request_data ): false|string {
-		return $this->handle_request( $request_data );
+		$response = new JSONRPCError(
+			'2.0',
+			$id,
+			$error_object
+		);
+		$response->validate();
+
+		return new JsonRpcMessage( $response );
 	}
 }
