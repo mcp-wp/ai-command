@@ -76,20 +76,21 @@ wp ai <prompt> [--skip-wordpress]
 Lists available MCP servers.
 
 ~~~
-wp mcp server list 
+wp mcp server list [--format=<format>]
 ~~~
 
 **OPTIONS**
 
-[--format=<format>]
-: Render output in a particular format.
----
-default: table
-options:
-- table
-- csv
-- json
-- count
+	[--format=<format>]
+		Render output in a particular format.
+		---
+		default: table
+		options:
+		  - table
+		  - csv
+		  - json
+		  - count
+		---
 
 **EXAMPLES**
 
@@ -149,7 +150,6 @@ wp mcp server remove <name>
     # Remove server.
     $ wp mcp server remove "server-filesystem"
     Success: Server removed.
-
 
 ## Contributing
 

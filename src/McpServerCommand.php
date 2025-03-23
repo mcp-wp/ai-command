@@ -17,16 +17,17 @@ class McpServerCommand extends WP_CLI_Command {
 	 *
 	 * ## OPTIONS
 	 *
-	 *  [--format=<format>]
-	 *  : Render output in a particular format.
-	 *  ---
-	 *  default: table
-	 *  options:
-	 *    - table
-	 *    - csv
-	 *    - json
-	 *    - count
-	 *
+	 * [--format=<format>]
+	 * : Render output in a particular format.
+	 * ---
+	 * default: table
+	 * options:
+	 *   - table
+	 *   - csv
+	 *   - json
+	 *   - count
+	 * ---
+     *
 	 * ## EXAMPLES
 	 *
 	 *     # Greet the world.
