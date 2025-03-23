@@ -3,7 +3,6 @@
 namespace WP_CLI\AiCommand\MCP\Servers\WordPress\Tools;
 
 use Mcp\Types\TextContent;
-use WP_Community_Events;
 
 readonly class Dummy {
 
