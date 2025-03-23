@@ -26,13 +26,9 @@ The _MCP Host_, gets information (such as list of available tools) from the serv
 
 ## Installing
 
-Installing this package requires WP-CLI v2.5 or greater. Update to the latest stable release with `wp cli update`.
+Installing this package requires WP-CLI v2.11 or greater. Update to the latest stable release with `wp cli update`.
 
-Once you've done so, you can install the latest stable version of this package with:
-
-```bash
-wp package install swissspidy/ai-command:@stable
-```
+Tip: for better on support of the latest PHP versions, use the v2.12 nightly build with `wp cli update --nightly`.
 
 To install the latest development version of this package, use the following command instead:
 
