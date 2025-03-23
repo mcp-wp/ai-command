@@ -2,6 +2,8 @@
 
 namespace WP_CLI\AiCommand\MCP\Servers\WordPress;
 
+use Mcp\Types\Resource;
+use Mcp\Types\ResourceTemplate;
 use WP_CLI\AiCommand\MCP\Server;
 use WP_CLI\AiCommand\MCP\Servers\WordPress\Tools\CommunityEvents;
 use WP_CLI\AiCommand\MCP\Servers\WordPress\Tools\Dummy;
@@ -38,5 +40,23 @@ class WordPress extends Server {
 		 * @param Server $server WordPress MCP server instance.
 		 */
 		do_action( 'ai_command_wordpress_tools_loaded', $this );
+
+		$this->register_resource(
+			new Resource(
+				'Greeting Text',
+				'example://greeting',
+				'A simple greeting message',
+				'text/plain'
+			)
+		);
+
+		$this->register_resource_template(
+			new ResourceTemplate(
+				'Attachment',
+				'media://{id}',
+				'WordPress attachment',
+				'application/octet-stream'
+			)
+		);
 	}
 }

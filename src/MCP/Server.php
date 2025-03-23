@@ -14,12 +14,16 @@ use Mcp\Types\InitializeResult;
 use Mcp\Types\JSONRPCError;
 use Mcp\Types\JsonRpcErrorObject;
 use Mcp\Types\JsonRpcMessage;
+use Mcp\Types\JSONRPCNotification;
+use Mcp\Types\JSONRPCRequest;
 use Mcp\Types\JSONRPCResponse;
 use Mcp\Types\ListResourcesResult;
+use Mcp\Types\ListResourceTemplatesResult;
 use Mcp\Types\ListToolsResult;
 use Mcp\Types\ReadResourceResult;
 use Mcp\Types\RequestId;
 use Mcp\Types\Resource;
+use Mcp\Types\ResourceTemplate;
 use Mcp\Types\Result;
 use Mcp\Types\TextContent;
 use Mcp\Types\TextResourceContents;
@@ -40,6 +44,11 @@ class Server {
 	 * @var Array<Resource>
 	 */
 	private array $resources = [];
+
+	/**
+	 * @var Array<ResourceTemplate>
+	 */
+	private array $resource_templates = [];
 
 	protected McpServer $mcp_server;
 
@@ -75,7 +84,10 @@ class Server {
 			[ $this, 'read_resources' ]
 		);
 
-		// TODO: Implement resources/templates/list
+		$this->mcp_server->registerHandler(
+			'resources/templates/list',
+			[ $this, 'list_resource_templates' ]
+		);
 	}
 
 	public function register_tool( array $tool_definition ): void {
@@ -165,17 +177,12 @@ class Server {
 
 	// TODO: Implement pagination, see https://spec.modelcontextprotocol.io/specification/2024-11-05/server/utilities/pagination/#response-format
 	// phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
-	public function list_resources( $params ) {
-		$resource = new Resource(
-			'Greeting Text',
-			'example://greeting',
-			'A simple greeting message',
-			'text/plain'
-		);
-		return new ListResourcesResult( [ $resource ] );
+	public function list_resources(): ListResourcesResult {
+		return new ListResourcesResult( $this->resources );
 	}
 
-	public function read_resources( $params ) {
+	// TODO: Make dynamic.
+	public function read_resources( $params ): ReadResourceResult {
 		$uri = $params->uri;
 		if ( 'example://greeting' !== $uri ) {
 			throw new InvalidArgumentException( "Unknown resource: {$uri}" );
@@ -192,13 +199,18 @@ class Server {
 		);
 	}
 
-	public function register_resource( array $resource_definition ) {
-		// Validate the resource definition (similar to tool validation)
-		if ( ! isset( $resource_definition['name'] ) || ! isset( $resource_definition['uri'] ) ) {
-			throw new InvalidArgumentException( 'Invalid resource definition.' );
-		}
+	public function register_resource( Resource $res ): void {
+		$this->resources[ $res->name ] = $res;
+	}
 
-		$this->resources[ $resource_definition['name'] ] = $resource_definition;
+	// TODO: Implement pagination, see https://spec.modelcontextprotocol.io/specification/2024-11-05/server/utilities/pagination/#response-format
+    // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
+	public function list_resource_templates( $params ): ListResourceTemplatesResult {
+		return new ListResourceTemplatesResult( $this->resource_templates );
+	}
+
+	public function register_resource_template( ResourceTemplate $resource_template ): void {
+		$this->resource_templates[ $resource_template->name ] = $resource_template;
 	}
 
 	/**
@@ -210,12 +222,12 @@ class Server {
 		$inner_message = $message->message;
 
 		try {
-			if ( $inner_message instanceof \Mcp\Types\JSONRPCRequest ) {
+			if ( $inner_message instanceof JSONRPCRequest ) {
 				// It's a request
 				return $this->process_request( $inner_message );
 			}
 
-			if ( $inner_message instanceof \Mcp\Types\JSONRPCNotification ) {
+			if ( $inner_message instanceof JSONRPCNotification ) {
 				// It's a notification
 				$this->process_notification( $inner_message );
 				return null;
@@ -224,12 +236,12 @@ class Server {
 			// Server does not expect responses from client; ignore or log
 			$this->logger->warning( 'Received unexpected message type: ' . get_class( $inner_message ) );
 		} catch ( McpError $e ) {
-			if ( $inner_message instanceof \Mcp\Types\JSONRPCRequest ) {
+			if ( $inner_message instanceof JSONRPCRequest ) {
 				return $this->send_error( $inner_message->id, $e->error );
 			}
 		} catch ( \Exception $e ) {
 			$this->logger->error( 'Error handling message: ' . $e->getMessage() );
-			if ( $inner_message instanceof \Mcp\Types\JSONRPCRequest ) {
+			if ( $inner_message instanceof JSONRPCRequest ) {
 				// Code -32603 is Internal error as per JSON-RPC spec
 				return $this->send_error(
 					$inner_message->id,
@@ -245,7 +257,7 @@ class Server {
 	/**
 	 * Processes a JSONRPCRequest message.
 	 */
-	private function process_request( \Mcp\Types\JSONRPCRequest $request ): JsonRpcMessage {
+	private function process_request( JSONRPCRequest $request ): JsonRpcMessage {
 		$method   = $request->method;
 		$handlers = $this->mcp_server->getHandlers();
 		$handler  = $handlers[ $method ] ?? null;
@@ -272,7 +284,7 @@ class Server {
 	/**
 	 * Processes a JSONRPCNotification message.
 	 */
-	private function process_notification( \Mcp\Types\JSONRPCNotification $notification ): void {
+	private function process_notification( JSONRPCNotification $notification ): void {
 		$method   = $notification->method;
 		$handlers = $this->mcp_server->getNotificationHandlers();
 		$handler  = $handlers[ $method ] ?? null;
