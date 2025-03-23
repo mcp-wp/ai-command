@@ -69,24 +69,6 @@ readonly class RouteInformation {
 		return false;
 	}
 
-	public function is_list(): bool {
-		return ! $this->is_singular();
-	}
-
-	public function get_scope(): string {
-		if ( ! $this->is_wp_rest_controller() ) {
-			return 'default';
-		}
-
-		$context = [
-			WP_REST_Posts_Controller::class      => 'post',
-			WP_REST_Users_Controller::class      => 'user',
-			WP_REST_Taxonomies_Controller::class => 'taxonomy',
-		];
-
-		return $context[ get_class( $this->get_wp_rest_controller() ) ];
-	}
-
 	public function is_wp_rest_controller(): bool {
 		// The callback form for a WP_REST_Controller is [ WP_REST_Controller, method ]
 		if ( ! is_array( $this->callback ) ) {
@@ -98,6 +80,13 @@ readonly class RouteInformation {
 			WP_REST_Users_Controller::class,
 			WP_REST_Taxonomies_Controller::class,
 		];
+
+		/**
+		 * Filters the list of supported REST API controllers in the WordPress MCP server.
+		 *
+		 * @param array<class-string> $allowed List of REST API controller class names.
+		 */
+		$allowed = apply_filters( 'ai_command_wordpress_allowed_rest_controllers', $allowed );
 
 		foreach ( $allowed as $controller ) {
 			if ( $this->callback[0] instanceof $controller ) {
