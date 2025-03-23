@@ -6,7 +6,6 @@ on:
       - main
       - master
   workflow_dispatch:
-  workflow_call:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
