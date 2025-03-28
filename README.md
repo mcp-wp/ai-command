@@ -36,6 +36,8 @@ To install the latest development version of this package, use the following com
 wp package install swissspidy/ai-command:dev-main
 ```
 
+Right now, the plugin requires a WordPress site with the [AI Services plugin](https://wordpress.org/plugins/ai-services) installed. 
+
 
 ## Using
 
