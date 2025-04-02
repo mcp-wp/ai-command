@@ -22,6 +22,7 @@ use Mcp\Types\ListResourceTemplatesResult;
 use Mcp\Types\ListToolsResult;
 use Mcp\Types\ReadResourceResult;
 use Mcp\Types\RequestId;
+use Mcp\Types\RequestParams;
 use Mcp\Types\Resource;
 use Mcp\Types\ResourceTemplate;
 use Mcp\Types\Result;
@@ -88,6 +89,15 @@ class Server {
 			'resources/templates/list',
 			[ $this, 'list_resource_templates' ]
 		);
+
+		$this->mcp_server->registerNotificationHandler(
+			'notifications/initialized',
+			[ $this, 'do_nothing' ]
+		);
+	}
+
+	public function do_nothing(): void {
+		// Do nothing.
 	}
 
 	public function register_tool( array $tool_definition ): void {
@@ -182,7 +192,7 @@ class Server {
 	}
 
 	// TODO: Make dynamic.
-	public function read_resources( $params ): ReadResourceResult {
+	public function read_resources( RequestParams $params ): ReadResourceResult {
 		$uri = $params->uri;
 		if ( 'example://greeting' !== $uri ) {
 			throw new InvalidArgumentException( "Unknown resource: {$uri}" );
@@ -301,7 +311,7 @@ class Server {
 	 * Sends a response to a request.
 	 *
 	 * @param RequestId $id The request ID to respond to.
-	 * @param Result $result The result object.
+	 * @param Result    $result The result object.
 	 */
 	private function send_response( RequestId $id, Result $result ): JsonRpcMessage {
 		// Create a JSONRPCResponse object and wrap in JsonRpcMessage

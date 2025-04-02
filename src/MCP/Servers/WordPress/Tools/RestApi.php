@@ -112,7 +112,6 @@ readonly class RestApi {
 	/**
 	 * Create description based on route and method.
 	 *
-	 *
 	 * Get a list of posts             GET /wp/v2/posts
 	 * Get post with id                GET /wp/v2/posts/(?P<id>[\d]+)
 	 */
