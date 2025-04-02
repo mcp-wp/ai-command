@@ -2,10 +2,10 @@
 
 namespace WP_CLI\AiCommand;
 
-use Mcp\Client\Client;
 use Mcp\Client\ClientSession;
 use Mcp\Client\Transport\StdioServerParameters;
 use WP_CLI\AiCommand\AI\AiClient;
+use WP_CLI\AiCommand\MCP\Client;
 use WP_CLI\AiCommand\Utils\CliLogger;
 use WP_CLI\AiCommand\Utils\McpConfig;
 use WP_CLI\Utils;
@@ -85,7 +85,7 @@ class AiCommand extends WP_CLI_Command {
 	/**
 	 * Returns a combined list of all tools for all existing MCP client sessions.
 	 *
-	 * @param array $sessions List of available sessions.
+	 * @param array<ClientSession> $sessions List of available sessions.
 	 * @return array List of tools.
 	 */
 	protected function get_tools( array $sessions ): array {
@@ -136,32 +136,28 @@ class AiCommand extends WP_CLI_Command {
 		);
 
 		if ( $with_wordpress ) {
-			$sessions[] = ( new MCP\Client( new CliLogger() ) )->connect(
-				MCP\Servers\WordPress\WordPress::class
-			);
+				$sessions[] = ( new Client( new CliLogger() ) )->connect(
+					MCP\Servers\WordPress\WordPress::class
+				);
 		}
 
 		$servers = array_values( ( new McpConfig() )->get_config() );
 
 		foreach ( $servers as $args ) {
 			if ( str_starts_with( $args, 'http://' ) || str_starts_with( $args, 'https://' ) ) {
-				$sessions[] = ( new Client() )->connect(
+				$sessions[] = ( new Client( new CliLogger() ) )->connect(
 					$args
 				);
-			} else {
-				$args          = explode( ' ', $args );
-				$cmd           = array_shift( $args );
-				$server_params = new StdioServerParameters(
-					$cmd,
-					$args
-				);
-
-				$sessions[] = ( new Client() )->connect(
-					$server_params->getCommand(),
-					$server_params->getArgs(),
-					$server_params->getEnv()
-				);
+				continue;
 			}
+
+			$args       = explode( ' ', $args );
+			$cmd_or_url = array_shift( $args );
+
+			$sessions[] = ( new Client( new CliLogger() ) )->connect(
+				$cmd_or_url,
+				$args,
+			);
 		}
 
 		return $sessions;

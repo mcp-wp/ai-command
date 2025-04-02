@@ -95,6 +95,12 @@ class InMemorySession extends ClientSession {
 		}
 
 		if ( $inner_message instanceof JSONRPCResponse ) {
+			// Coming from HttpTransport.
+			if ( is_array( $inner_message->result ) ) {
+				return $result_type::fromResponseData( $inner_message->result );
+			}
+
+			// InMemoryTransport already returns the correct instances.
 			return $inner_message->result;
 		}
 

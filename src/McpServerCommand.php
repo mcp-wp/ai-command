@@ -27,7 +27,7 @@ class McpServerCommand extends WP_CLI_Command {
 	 *   - json
 	 *   - count
 	 * ---
-     *
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     # Greet the world.
