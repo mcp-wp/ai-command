@@ -1,9 +1,9 @@
 <?php
 
-namespace WP_CLI\AiCommand\MCP\Servers\WP_CLI;
+namespace McpWp\AiCommand\MCP\Servers\WP_CLI;
 
-use WP_CLI\AiCommand\MCP\Server;
-use WP_CLI\AiCommand\MCP\Servers\WP_CLI\Tools\CliCommands;
+use McpWp\AiCommand_Dependencies\McpWp\MCP\Server;
+use McpWp\AiCommand\MCP\Servers\WP_CLI\Tools\CliCommands;
 
 class WP_CLI extends Server {
 	public function __construct() {

@@ -1,6 +1,6 @@
 <?php
 
-namespace WP_CLI\AiCommand\Tests\MCP\Client;
+namespace McpWp\AiCommand\Tests\MCP\Client;
 
 use WP_CLI\Tests\TestCase;
 

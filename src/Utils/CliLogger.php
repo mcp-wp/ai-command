@@ -1,6 +1,6 @@
 <?php
 
-namespace WP_CLI\AiCommand\Utils;
+namespace McpWp\AiCommand\Utils;
 
 use Psr\Log\LoggerInterface;
 use InvalidArgumentException;

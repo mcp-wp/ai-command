@@ -45,10 +45,12 @@
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
 		<properties>
 			<property name="prefixes" type="array">
-				<element value="WP_CLI\AiCommand"/><!-- Namespaces. -->
+				<element value="McpWp\AiCommand"/><!-- Namespaces. -->
 				<element value="ai_command"/><!-- Global variables and such. -->
 			</property>
 		</properties>
+
+		<exclude-pattern>scoper.inc.php</exclude-pattern>
 	</rule>
 
 	<rule ref="WordPress.NamingConventions.ValidVariableName">
@@ -58,4 +60,9 @@
 			</property>
 		</properties>
 	</rule>
+
+	<!-- Third-party or auto-generated code -->
+	<exclude-pattern>*/third-party/*</exclude-pattern>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/includes/vendor/*</exclude-pattern>
 </ruleset>

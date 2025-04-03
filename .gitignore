@@ -2,6 +2,9 @@
 wp-cli.local.yml
 node_modules/
 vendor/
+src/vendor/
+src/composer.json
+third-party/
 *.zip
 *.tar.gz
 *.swp

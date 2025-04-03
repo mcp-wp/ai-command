@@ -1,6 +1,6 @@
 <?php
 
-namespace WP_CLI\AiCommand\AI;
+namespace McpWp\AiCommand\AI;
 
 use Exception;
 use Felix_Arntz\AI_Services\Services\API\Enums\AI_Capability;

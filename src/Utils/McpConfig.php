@@ -1,6 +1,6 @@
 <?php
 
-namespace WP_CLI\AiCommand\Utils;
+namespace McpWp\AiCommand\Utils;
 
 use WP_CLI\Utils;
 use WP_CLI_Command;

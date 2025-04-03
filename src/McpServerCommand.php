@@ -1,8 +1,8 @@
 <?php
 
-namespace WP_CLI\AiCommand;
+namespace McpWp\AiCommand;
 
-use WP_CLI\AiCommand\Utils\McpConfig;
+use McpWp\AiCommand\Utils\McpConfig;
 use WP_CLI\Formatter;
 use WP_CLI_Command;
 

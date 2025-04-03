@@ -138,7 +138,7 @@ $server->register_resource(
 List resources
 
 ```PHP
-$server    = new WP_CLI\AiCommand\MCP\Server();
+$server    = new McpWp\AiCommand\MCP\Server();
 $resources = $server->list_resources();
 
 echo json_encode( $resources, JSON_PRETTY_PRINT );
@@ -147,7 +147,7 @@ echo json_encode( $resources, JSON_PRETTY_PRINT );
 Read resource
 
 ```PHP
-$server        = new WP_CLI\AiCommand\MCP\Server();
+$server        = new McpWp\AiCommand\MCP\Server();
 $resource_data = $server->read_resource( 'file://./products.json' );
 
 echo json_encode( $resource_data, JSON_PRETTY_PRINT );

@@ -53,7 +53,7 @@ jobs:
           custom-cache-suffix: $(date -u "+%Y-%m")
 
       - name: Run Linter
-        run: vendor/bin/parallel-lint -j 10 . --show-deprecated --exclude vendor --exclude .git --checkstyle | cs2pr
+        run: vendor/bin/parallel-lint -j 10 . --show-deprecated --exclude vendor --exclude .git --exclude third-party --checkstyle | cs2pr
 
   phpcs:
     name: PHPCS

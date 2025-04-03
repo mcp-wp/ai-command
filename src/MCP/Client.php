@@ -1,16 +1,14 @@
 <?php
 
-namespace WP_CLI\AiCommand\MCP;
+namespace McpWp\AiCommand\MCP;
 
-use Mcp\Client\Client as McpCLient;
-use Mcp\Client\ClientSession;
-use Mcp\Client\Transport\StdioServerParameters;
+use McpWp\AiCommand_Dependencies\Mcp\Client\Client as McpCLient;
+use McpWp\AiCommand_Dependencies\Mcp\Client\ClientSession;
+use McpWp\AiCommand_Dependencies\McpWp\MCP\Server;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
-
 class Client extends McpCLient {
-	private ?ClientSession $session = null;
 
 	private LoggerInterface $logger;
 
@@ -38,6 +36,7 @@ class Client extends McpCLient {
 		?array $env = null,
 		?float $read_timeout = null
 	): ClientSession {
+		$session = null;
 		if ( class_exists( $command_or_url ) ) {
 			/**
 			 * @var Server $server
@@ -51,15 +50,15 @@ class Client extends McpCLient {
 
 			[$read_stream, $write_stream] = $transport->connect();
 
-			$this->session = new InMemorySession(
+			$session = new InMemorySession(
 				$read_stream,
 				$write_stream,
 				$this->logger
 			);
 
-			$this->session->initialize();
+			$session->initialize();
 
-			return $this->session;
+			return $session;
 		}
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
@@ -82,17 +81,17 @@ class Client extends McpCLient {
 			[$read_stream, $write_stream] = $transport->connect();
 
 			// Initialize the client session with the obtained streams
-			$this->session = new InMemorySession(
+			$session = new InMemorySession(
 				$read_stream,
 				$write_stream,
 				$this->logger
 			);
 
 			// Initialize the session (e.g., perform handshake if necessary)
-			$this->session->initialize();
+			$session->initialize();
 			$this->logger->info( 'Session initialized successfully' );
 
-			return $this->session;
+			return $session;
 		}
 
 		return parent::connect( $command_or_url, $args, $env, $read_timeout );

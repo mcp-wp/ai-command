@@ -1,6 +1,6 @@
 <?php
 
-namespace WP_CLI\AiCommand;
+namespace McpWp\AiCommand;
 
 use WP_CLI;
 
@@ -8,10 +8,12 @@ if ( ! class_exists( '\WP_CLI' ) ) {
 	return;
 }
 
-$ai_command_autoloader = __DIR__ . '/vendor/autoload.php';
+if ( file_exists( __DIR__ . '/third-party/vendor/autoload.php' ) ) {
+		require_once __DIR__ . '/third-party/vendor/autoload.php';
+}
 
-if ( file_exists( $ai_command_autoloader ) ) {
-	require_once $ai_command_autoloader;
+if ( file_exists( __DIR__ . '/src/vendor/autoload.php' ) ) {
+		require_once __DIR__ . '/src/vendor/autoload.php';
 }
 
 WP_CLI::add_command( 'ai', AiCommand::class );
