@@ -1,46 +1,20 @@
 <?php
 
-/**
- * Model Context Protocol SDK for PHP
- *
- * (c) 2024 Logiscape LLC <https://logiscape.com>
- *
- * Based on the Python SDK for the Model Context Protocol
- * https://github.com/modelcontextprotocol/python-sdk
- *
- * PHP conversion developed by:
- * - Josh Abbott
- * - Claude 3.5 Sonnet (Anthropic AI model)
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- *
- * @package    logiscape/mcp-sdk-php
- * @author     Josh Abbott <https://joshabbott.com>
- * @copyright  Logiscape LLC
- * @license    MIT License
- * @link       https://github.com/logiscape/mcp-sdk-php
- *
- * Filename: Client/Transport/SseTransport.php
- */
-
-declare(strict_types=1);
-
-namespace WP_CLI\AiCommand\MCP;
+namespace McpWp\AiCommand\MCP;
 
 use Exception;
 use InvalidArgumentException;
-use Mcp\Shared\MemoryStream;
-use Mcp\Types\JsonRpcMessage;
+use McpWp\AiCommand_Dependencies\Mcp\Shared\MemoryStream;
+use McpWp\AiCommand_Dependencies\Mcp\Types\JsonRpcMessage;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Psr\Log\NullLogger;
-use Mcp\Types\JSONRPCRequest;
-use Mcp\Types\JSONRPCNotification;
-use Mcp\Types\JSONRPCResponse;
-use Mcp\Types\JSONRPCError;
-use Mcp\Types\RequestId;
-use Mcp\Types\JsonRpcErrorObject;
+use McpWp\AiCommand_Dependencies\Mcp\Types\JSONRPCRequest;
+use McpWp\AiCommand_Dependencies\Mcp\Types\JSONRPCNotification;
+use McpWp\AiCommand_Dependencies\Mcp\Types\JSONRPCResponse;
+use McpWp\AiCommand_Dependencies\Mcp\Types\JSONRPCError;
+use McpWp\AiCommand_Dependencies\Mcp\Types\RequestId;
+use McpWp\AiCommand_Dependencies\Mcp\Types\JsonRpcErrorObject;
 use WpOrg\Requests\Response;
 
 /**

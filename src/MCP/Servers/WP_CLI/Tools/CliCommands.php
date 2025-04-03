@@ -1,6 +1,6 @@
 <?php
 
-namespace WP_CLI\AiCommand\MCP\Servers\WP_CLI\Tools;
+namespace McpWp\AiCommand\MCP\Servers\WP_CLI\Tools;
 
 use Psr\Log\LoggerInterface;
 use WP_CLI;

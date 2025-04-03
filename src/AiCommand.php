@@ -1,13 +1,13 @@
 <?php
 
-namespace WP_CLI\AiCommand;
+namespace McpWp\AiCommand;
 
 use Mcp\Client\ClientSession;
-use Mcp\Client\Transport\StdioServerParameters;
-use WP_CLI\AiCommand\AI\AiClient;
-use WP_CLI\AiCommand\MCP\Client;
-use WP_CLI\AiCommand\Utils\CliLogger;
-use WP_CLI\AiCommand\Utils\McpConfig;
+use McpWp\AiCommand\AI\AiClient;
+use McpWp\AiCommand\MCP\Client;
+use McpWp\AiCommand\Utils\CliLogger;
+use McpWp\AiCommand\Utils\McpConfig;
+use McpWp\AiCommand_Dependencies\McpWp\MCP\Servers\WordPress\WordPress;
 use WP_CLI\Utils;
 use WP_CLI_Command;
 
@@ -50,9 +50,6 @@ class AiCommand extends WP_CLI_Command {
 		$with_wordpress = null === Utils\get_flag_value( $assoc_args, 'skip-wordpress' );
 		if ( $with_wordpress ) {
 			\WP_CLI::get_runner()->load_wordpress();
-		} else {
-			// TODO: Implement.
-			\WP_CLI::error( 'Not implemented yet' );
 		}
 
 		$sessions = $this->get_sessions( $with_wordpress );
@@ -131,13 +128,13 @@ class AiCommand extends WP_CLI_Command {
 		$sessions = [];
 
 		// The WP-CLI MCP server is always available.
-		$sessions[] = ( new MCP\Client( new CliLogger() ) )->connect(
+		$sessions[] = ( new Client( new CliLogger() ) )->connect(
 			MCP\Servers\WP_CLI\WP_CLI::class
 		);
 
 		if ( $with_wordpress ) {
 				$sessions[] = ( new Client( new CliLogger() ) )->connect(
-					MCP\Servers\WordPress\WordPress::class
+					WordPress::class
 				);
 		}
 

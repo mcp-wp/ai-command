@@ -1,24 +1,42 @@
 {
-    "name": "swissspidy/ai-command",
+    "name": "mcp-wp/ai-command",
     "type": "wp-cli-package",
     "description": "",
-    "homepage": "https://github.com/swissspidy/ai-command",
+    "homepage": "https://github.com/mcp-wp/ai-command",
     "license": "MIT",
     "authors": [],
     "require": {
         "php": "^8.2",
+        "felixarntz/ai-services": "dev-main",
         "logiscape/mcp-sdk-php": "^1.0",
+        "mcaskill/composer-exclude-files": "^4.0",
+        "mcp-wp/mcp-server": "dev-main",
         "wp-cli/wp-cli": "^2.11"
     },
     "require-dev": {
-      "roave/security-advisories": "dev-latest",
-      "wp-cli/wp-cli-tests": "^v4.3.9"
+        "humbug/php-scoper": "^0.18.17",
+        "roave/security-advisories": "dev-latest",
+        "wp-cli/wp-cli-tests": "^v4.3.9"
     },
+    "repositories": [
+      {
+        "type": "vcs",
+        "url": "https://github.com/mcp-wp/mcp-server",
+        "no-api": true
+      },
+      {
+        "type": "vcs",
+        "url": "https://github.com/felixarntz/ai-services",
+        "no-api": true
+      }
+    ],
     "config": {
         "process-timeout": 7200,
         "sort-packages": true,
         "allow-plugins": {
+            "composer/installers": true,
             "dealerdirect/phpcodesniffer-composer-installer": true,
+            "mcaskill/composer-exclude-files": true,
             "php-http/discovery": true
         }
     },
@@ -32,12 +50,15 @@
             "mcp server list",
             "mcp server add",
             "mcp server remove"
-        ]
+        ],
+        "exclude-from-files": [
+        ],
+      "installer-disable": true
     },
     "autoload": {
         "psr-4": {
-            "WP_CLI\\AiCommand\\": "src/",
-            "WP_CLI\\AiCommand\\MCP\\": "src/MCP"
+            "McpWp\\AiCommand\\": "src/",
+            "McpWp\\AiCommand\\MCP\\": "src/MCP"
         },
         "files": [
             "ai-command.php"
@@ -46,6 +67,12 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "scripts": {
+        "post-install-cmd": [
+          "@prefix-dependencies"
+        ],
+        "post-update-cmd": [
+          "@prefix-dependencies"
+        ],
         "behat": "run-behat-tests",
         "behat-rerun": "rerun-behat-tests",
         "lint": "run-linter-tests",
@@ -58,9 +85,18 @@
             "@phpcs",
             "@phpunit",
             "@behat"
-        ]
+        ],
+      "prefix-dependencies": [
+        "php-scoper add-prefix --output-dir=./third-party --force --quiet",
+        "echo '{ \"autoload\": { \"classmap\": [\"\"] } }' > ./third-party/composer.json",
+        "@composer dump-autoload --working-dir ./third-party --no-dev --classmap-authoritative",
+        "sed -i'.bak' -e 's/Composer\\\\/AiCommand_Composer\\\\/' third-party/vendor/composer/*.php && rm -rf third-party/vendor/composer/*.php.bak",
+        "echo '{ \"autoload\": { \"classmap\": [\"\"] } }' > ./src/composer.json",
+        "@composer dump-autoload --working-dir ./src --no-dev --classmap-authoritative",
+        "sed -i'.bak' -e 's/Composer\\\\/AiCommand_Composer\\\\/' src/vendor/composer/*.php && rm -rf src/vendor/composer/*.php.bak"
+      ]
     },
     "support": {
-        "issues": "https://github.com/swissspidy/ai-command/issues"
+        "issues": "https://github.com/mcp-wp/ai-command/issues"
     }
 }
