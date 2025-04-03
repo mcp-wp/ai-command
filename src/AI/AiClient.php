@@ -42,7 +42,9 @@ class AiClient {
 		$new_contents = $contents;
 
 		$tools = new Tools();
-		$tools->add_function_declarations_tool( $this->tools );
+		if ( ! empty( $this->tools ) ) {
+			$tools->add_function_declarations_tool( $this->tools );
+		}
 
 		try {
 			$service = ai_services()->get_available_service(
