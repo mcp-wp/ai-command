@@ -3,7 +3,7 @@
     "type": "wp-cli-package",
     "description": "",
     "homepage": "https://github.com/mcp-wp/ai-command",
-    "license": "MIT",
+    "license": "Apache-2.0",
     "authors": [],
     "require": {
         "php": "^8.2",
