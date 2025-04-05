@@ -96,6 +96,7 @@ jobs:
     strategy:
       matrix:
         php: [ '8.2' ]
+        coverage: [ false ]
         include:
           - php: '8.3'
             coverage: true
@@ -110,7 +111,7 @@ jobs:
         with:
           php-version: '${{ matrix.php }}'
           ini-values: zend.assertions=1, error_reporting=-1, display_errors=On
-          coverage: none
+          coverage: ${{ matrix.coverage && 'xdebug' || 'none' }}
           tools: composer,cs2pr
 
       - name: Install Composer dependencies & cache dependencies
