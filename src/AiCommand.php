@@ -26,6 +26,9 @@ class AiCommand extends WP_CLI_Command {
 	 * <prompt>
 	 * : AI prompt.
 	 *
+	 * [--skip-built-in-servers]
+	 * : Skip loading the built-in servers.
+	 *
 	 * [--skip-wordpress]
 	 * : Run command without loading WordPress. (Not implemented yet)
 	 *
@@ -52,7 +55,9 @@ class AiCommand extends WP_CLI_Command {
 			\WP_CLI::get_runner()->load_wordpress();
 		}
 
-		$sessions = $this->get_sessions( $with_wordpress );
+		$with_builtin_servers = null === Utils\get_flag_value( $assoc_args, 'skip-built-in-servers' );
+
+		$sessions = $this->get_sessions( $with_wordpress && $with_builtin_servers, $with_builtin_servers );
 		$tools    = $this->get_tools( $sessions );
 
 		$ai_client = new AiClient(
@@ -121,21 +126,23 @@ class AiCommand extends WP_CLI_Command {
 	/**
 	 * Returns a list of MCP client sessions for each MCP server that is configured.
 	 *
-	 * @param bool $with_wordpress Whether a session for the built-in WordPress MCP server should be created.
+	 * @param bool $with_wp_server Whether a session for the built-in WordPress MCP server should be created.
+	 * @param bool $with_cli_server Whether a session for the built-in WP-CLI MCP server should be created.
 	 * @return ClientSession[]
 	 */
-	public function get_sessions( bool $with_wordpress ): array {
+	public function get_sessions( bool $with_wp_server, bool $with_cli_server ): array {
 		$sessions = [];
 
-		// The WP-CLI MCP server is always available.
-		$sessions[] = ( new Client( new CliLogger() ) )->connect(
-			MCP\Servers\WP_CLI\WP_CLI::class
-		);
+		if ( $with_cli_server ) {
+			$sessions[] = ( new Client( new CliLogger() ) )->connect(
+				MCP\Servers\WP_CLI\WP_CLI::class
+			);
+		}
 
-		if ( $with_wordpress ) {
-				$sessions[] = ( new Client( new CliLogger() ) )->connect(
-					WordPress::class
-				);
+		if ( $with_wp_server ) {
+			$sessions[] = ( new Client( new CliLogger() ) )->connect(
+				WordPress::class
+			);
 		}
 
 		$servers = array_values( ( new McpConfig() )->get_config() );
