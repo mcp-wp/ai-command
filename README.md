@@ -1,8 +1,11 @@
-# WP-CLI as an MCP Host
+# WP-CLI AI Command with MCP support
 
 [![Commit activity](https://img.shields.io/github/commit-activity/m/mcp-wp/ai-command)](https://github.com/mcp-wp/ai-command/pulse/monthly)
 [![Code Coverage](https://codecov.io/gh/mcp-wp/ai-command/branch/main/graph/badge.svg)](https://codecov.io/gh/mcp-wp/ai-command)
 [![License](https://img.shields.io/github/license/mcp-wp/ai-command)](https://github.com/mcp-wp/ai-command/blob/main/LICENSE)
+
+This WP-CLI command enables direct AI interactions with WordPress installations during development by implementing the [Model Context Protocol](https://modelcontextprotocol.io/) (MCP).
+It not only provides its own MCP server for controlling WordPress sites, but also allows connecting to any other local or remote MCP server.
 
 [![Read documentation](https://img.shields.io/badge/Read%20documentation-24282D?style=for-the-badge&logo=Files&logoColor=ffffff)](https://mcp-wp.github.io/)
 
