@@ -17,13 +17,6 @@
         "roave/security-advisories": "dev-latest",
         "wp-cli/wp-cli-tests": "^v4.3.9"
     },
-    "repositories": [
-      {
-        "type": "vcs",
-        "url": "https://github.com/mcp-wp/mcp-server",
-        "no-api": true
-      }
-    ],
     "config": {
         "process-timeout": 7200,
         "sort-packages": true,
@@ -61,15 +54,10 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "scripts": {
-        "post-install-cmd": [
-          "@prefix-dependencies"
-        ],
-        "post-update-cmd": [
-          "@prefix-dependencies"
-        ],
         "behat": "run-behat-tests",
         "behat-rerun": "rerun-behat-tests",
         "lint": "run-linter-tests",
+        "format": "@phpcbf",
         "phpcs": "run-phpcs-tests",
         "phpcbf": "run-phpcbf-cleanup",
         "phpunit": "run-php-unit-tests",
@@ -79,16 +67,7 @@
             "@phpcs",
             "@phpunit",
             "@behat"
-        ],
-      "prefix-dependencies": [
-        "php-scoper add-prefix --output-dir=./third-party --force --quiet",
-        "echo '{ \"autoload\": { \"classmap\": [\"\"] } }' > ./third-party/composer.json",
-        "@composer dump-autoload --working-dir ./third-party --no-dev --classmap-authoritative",
-        "sed -i'.bak' -e 's/Composer\\\\/AiCommand_Composer\\\\/' third-party/vendor/composer/*.php && rm -rf third-party/vendor/composer/*.php.bak",
-        "echo '{ \"autoload\": { \"classmap\": [\"\"] } }' > ./src/composer.json",
-        "@composer dump-autoload --working-dir ./src --no-dev --classmap-authoritative",
-        "sed -i'.bak' -e 's/Composer\\\\/AiCommand_Composer\\\\/' src/vendor/composer/*.php && rm -rf src/vendor/composer/*.php.bak"
-      ]
+        ]
     },
     "support": {
         "issues": "https://github.com/mcp-wp/ai-command/issues"

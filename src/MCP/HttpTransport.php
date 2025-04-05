@@ -4,17 +4,17 @@ namespace McpWp\AiCommand\MCP;
 
 use Exception;
 use InvalidArgumentException;
-use McpWp\AiCommand_Dependencies\Mcp\Shared\MemoryStream;
-use McpWp\AiCommand_Dependencies\Mcp\Types\JsonRpcMessage;
+use Mcp\Shared\MemoryStream;
+use Mcp\Types\JsonRpcMessage;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Psr\Log\NullLogger;
-use McpWp\AiCommand_Dependencies\Mcp\Types\JSONRPCRequest;
-use McpWp\AiCommand_Dependencies\Mcp\Types\JSONRPCNotification;
-use McpWp\AiCommand_Dependencies\Mcp\Types\JSONRPCResponse;
-use McpWp\AiCommand_Dependencies\Mcp\Types\JSONRPCError;
-use McpWp\AiCommand_Dependencies\Mcp\Types\RequestId;
-use McpWp\AiCommand_Dependencies\Mcp\Types\JsonRpcErrorObject;
+use Mcp\Types\JSONRPCRequest;
+use Mcp\Types\JSONRPCNotification;
+use Mcp\Types\JSONRPCResponse;
+use Mcp\Types\JSONRPCError;
+use Mcp\Types\RequestId;
+use Mcp\Types\JsonRpcErrorObject;
 use WpOrg\Requests\Response;
 
 /**

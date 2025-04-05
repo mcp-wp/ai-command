@@ -4,9 +4,9 @@ namespace McpWp\AiCommand\MCP;
 
 use Exception;
 use InvalidArgumentException;
-use McpWp\AiCommand_Dependencies\Mcp\Shared\MemoryStream;
-use McpWp\AiCommand_Dependencies\Mcp\Types\JsonRpcMessage;
-use McpWp\AiCommand_Dependencies\McpWp\MCP\Server;
+use Mcp\Shared\MemoryStream;
+use Mcp\Types\JsonRpcMessage;
+use McpWp\MCP\Server;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 

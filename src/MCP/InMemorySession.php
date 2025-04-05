@@ -3,16 +3,16 @@
 namespace McpWp\AiCommand\MCP;
 
 use InvalidArgumentException;
-use McpWp\AiCommand_Dependencies\Mcp\Client\ClientSession;
-use McpWp\AiCommand_Dependencies\Mcp\Shared\ErrorData;
-use McpWp\AiCommand_Dependencies\Mcp\Shared\McpError;
-use McpWp\AiCommand_Dependencies\Mcp\Shared\MemoryStream;
-use McpWp\AiCommand_Dependencies\Mcp\Types\JSONRPCError;
-use McpWp\AiCommand_Dependencies\Mcp\Types\JsonRpcMessage;
-use McpWp\AiCommand_Dependencies\Mcp\Types\JSONRPCRequest;
-use McpWp\AiCommand_Dependencies\Mcp\Types\JSONRPCResponse;
-use McpWp\AiCommand_Dependencies\Mcp\Types\McpModel;
-use McpWp\AiCommand_Dependencies\Mcp\Types\RequestId;
+use Mcp\Client\ClientSession;
+use Mcp\Shared\ErrorData;
+use Mcp\Shared\McpError;
+use Mcp\Shared\MemoryStream;
+use Mcp\Types\JSONRPCError;
+use Mcp\Types\JsonRpcMessage;
+use Mcp\Types\JSONRPCRequest;
+use Mcp\Types\JSONRPCResponse;
+use Mcp\Types\McpModel;
+use Mcp\Types\RequestId;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 

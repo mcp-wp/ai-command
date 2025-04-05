@@ -2,7 +2,7 @@
 
 namespace McpWp\AiCommand\MCP\Servers\WP_CLI;
 
-use McpWp\AiCommand_Dependencies\McpWp\MCP\Server;
+use McpWp\MCP\Server;
 use McpWp\AiCommand\MCP\Servers\WP_CLI\Tools\CliCommands;
 
 class WP_CLI extends Server {
