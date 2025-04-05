@@ -11,6 +11,7 @@ use Felix_Arntz\AI_Services\Services\API\Types\Parts\Function_Call_Part;
 use Felix_Arntz\AI_Services\Services\API\Types\Parts\Text_Part;
 use Felix_Arntz\AI_Services\Services\API\Types\Tools;
 use WP_CLI;
+use function cli\prompt;
 
 class AiClient {
 	/**
@@ -129,7 +130,7 @@ class AiClient {
 
 			WP_CLI::line( $text );
 
-			$response = \cli\prompt( '', false, '' );
+			$response = prompt( '', false, '' );
 
 			$parts = new Parts();
 			$parts->add_text_part( $response );

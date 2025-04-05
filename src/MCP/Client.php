@@ -2,9 +2,9 @@
 
 namespace McpWp\AiCommand\MCP;
 
-use McpWp\AiCommand_Dependencies\Mcp\Client\Client as McpCLient;
-use McpWp\AiCommand_Dependencies\Mcp\Client\ClientSession;
-use McpWp\AiCommand_Dependencies\McpWp\MCP\Server;
+use Mcp\Client\Client as McpCLient;
+use Mcp\Client\ClientSession;
+use McpWp\MCP\Server;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
