@@ -17,6 +17,8 @@ jobs:
     strategy:
       matrix:
         php: ['8.2']
+        wp: ['latest']
+        coverage: [true]
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -43,19 +45,61 @@ jobs:
       - name: Install composer packages
         run: composer install
 
-      - name: Run Behat
-        run: composer behat
+      - name: Check Behat environment
         env:
+          WP_VERSION: '${{ matrix.wp }}'
           WP_CLI_TEST_DBUSER: wp_cli_test
           WP_CLI_TEST_DBPASS: password1
           WP_CLI_TEST_DBNAME: wp_cli_test
           WP_CLI_TEST_DBHOST: 127.0.0.1:${{ job.services.mysql.ports['3306'] }}
+        run: WP_CLI_TEST_DEBUG_BEHAT_ENV=1 composer behat
+
+      - name: Run Behat
+        env:
+          WP_VERSION: '${{ matrix.wp }}'
+          WP_CLI_TEST_DBUSER: wp_cli_test
+          WP_CLI_TEST_DBPASS: password1
+          WP_CLI_TEST_DBNAME: wp_cli_test
+          WP_CLI_TEST_DBHOST: 127.0.0.1:${{ job.services.mysql.ports['3306'] }}
+          WP_CLI_TEST_COVERAGE: ${{ matrix.coverage }}
+        run: |
+          ARGS=()
+
+          if [[ $WP_CLI_TEST_COVERAGE == 'true' ]]; then
+            ARGS+=("--xdebug")
+          fi
+
+          if [[ $RUNNER_DEBUG == '1' ]]; then
+            ARGS+=("--format=pretty")
+          fi
+
+          composer behat -- "${ARGS[@]}" || composer behat-rerun -- "${ARGS[@]}"
+
+      - name: Retrieve list of coverage files
+        id: coverage_files
+        if: ${{ matrix.coverage }}
+        run: |
+          FILES=$(find "$GITHUB_WORKSPACE/build/logs" -path '*.*' | paste -s -d "," -)
+          echo "files=$FILES" >> $GITHUB_OUTPUT
+
+      - name: Upload code coverage report
+        if: ${{ matrix.coverage }}
+        uses: codecov/codecov-action@v5.4.0
+        with:
+          # Because somehow providing `directory: build/logs` doesn't work for these files
+          files: ${{ steps.coverage_files.outputs.files }}
+          flags: feature
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   unit: #-----------------------------------------------------------------------
     name: Unit test /  PHP ${{ matrix.php }}
     strategy:
       matrix:
         php: [ '8.2' ]
+        coverage: [ false ]
+        include:
+          - php: '8.3'
+            coverage: true
     runs-on: ubuntu-latest
 
     steps:
@@ -67,7 +111,7 @@ jobs:
         with:
           php-version: '${{ matrix.php }}'
           ini-values: zend.assertions=1, error_reporting=-1, display_errors=On
-          coverage: none
+          coverage: ${{ matrix.coverage && 'xdebug' || 'none' }}
           tools: composer,cs2pr
 
       - name: Install Composer dependencies & cache dependencies
@@ -93,4 +137,17 @@ jobs:
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
       - name: Run PHPUnit
-        run: composer phpunit
+        run: |
+          if [[ ${{ matrix.coverage == true }} == true ]]; then
+            composer phpunit -- --coverage-clover build/logs/unit-coverage.xml
+          else
+            composer phpunit
+          fi
+
+      - name: Upload code coverage report
+        if: ${{ matrix.coverage }}
+        uses: codecov/codecov-action@v5.4.0
+        with:
+          directory: build/logs
+          flags: unit
+          token: ${{ secrets.CODECOV_TOKEN }}
