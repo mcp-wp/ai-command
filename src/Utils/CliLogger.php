@@ -68,7 +68,7 @@ class CliLogger implements LoggerInterface {
 	 * @param mixed[] $context
 	 */
 	public function notice( $message, array $context = [] ): void {
-		WP_CLI::log( $message );
+		WP_CLI::debug( $message, 'ai-command' );
 	}
 
 	/**
@@ -79,7 +79,7 @@ class CliLogger implements LoggerInterface {
 	 * @param mixed[] $context
 	 */
 	public function info( $message, array $context = [] ): void {
-		WP_CLI::log( $message );
+		WP_CLI::debug( $message, 'ai-command' );
 	}
 
 	/**

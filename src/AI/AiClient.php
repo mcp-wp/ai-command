@@ -94,7 +94,7 @@ class AiClient {
 				} elseif ( $part instanceof Function_Call_Part ) {
 					$function_name = $part->get_name();
 
-					echo "Output generated with the '$function_name' tool:\n";
+					WP_CLI::debug( "Output generated with the '$function_name' tool:", 'ai-command' );
 
 					// Need to repeat the function call part.
 					$parts = new Parts();
