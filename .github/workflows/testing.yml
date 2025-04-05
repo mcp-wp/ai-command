@@ -96,6 +96,9 @@ jobs:
     strategy:
       matrix:
         php: [ '8.2' ]
+        include:
+          - php: '8.3'
+            coverage: true
     runs-on: ubuntu-latest
 
     steps:
@@ -133,4 +136,17 @@ jobs:
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
       - name: Run PHPUnit
-        run: composer phpunit
+        run: |
+          if [[ ${{ matrix.coverage == true }} == true ]]; then
+            composer phpunit -- --coverage-clover build/logs/unit-coverage.xml
+          else
+            composer phpunit
+          fi
+
+      - name: Upload code coverage report
+        if: ${{ matrix.coverage }}
+        uses: codecov/codecov-action@v5.4.0
+        with:
+          directory: build/logs
+          flags: unit
+          token: ${{ secrets.CODECOV_TOKEN }}
