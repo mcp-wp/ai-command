@@ -7,7 +7,6 @@
     "authors": [],
     "require": {
         "php": "^8.2",
-        "felixarntz/ai-services": "dev-main",
         "logiscape/mcp-sdk-php": "^1.0",
         "mcaskill/composer-exclude-files": "^4.0",
         "mcp-wp/mcp-server": "dev-main",
@@ -22,11 +21,6 @@
       {
         "type": "vcs",
         "url": "https://github.com/mcp-wp/mcp-server",
-        "no-api": true
-      },
-      {
-        "type": "vcs",
-        "url": "https://github.com/felixarntz/ai-services",
         "no-api": true
       }
     ],
