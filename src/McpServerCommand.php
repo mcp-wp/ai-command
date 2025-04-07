@@ -213,7 +213,7 @@ class McpServerCommand extends WP_CLI_Command {
 
 		// Special case for renaming an entry.
 		if ( isset( $assoc_args['name'] ) ) {
-			$config[  $assoc_args['name'] ] = $config[ $args[0] ];
+			$config[ $assoc_args['name'] ] = $config[ $args[0] ];
 			unset( $config[ $args[0] ] );
 		}
 
