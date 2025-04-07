@@ -19,6 +19,9 @@ class McpServerCommand extends WP_CLI_Command {
 	 *
 	 * ## OPTIONS
 	 *
+	 * [--<field>=<value>]
+	 * : Filter results by key=value pairs.
+	 *
 	 * [--format=<format>]
 	 * : Render output in a particular format.
 	 * ---
@@ -42,6 +45,8 @@ class McpServerCommand extends WP_CLI_Command {
 	 *
 	 * @subcommand list
 	 *
+	 * @when before_wp_load
+	 *
 	 * @param array $args Indexed array of positional arguments.
 	 * @param array $assoc_args Associative array of associative arguments.
 	 */
@@ -51,6 +56,13 @@ class McpServerCommand extends WP_CLI_Command {
 		$servers = [];
 
 		foreach ( $config as $name => $server ) {
+			// Support features like --status=active.
+			foreach ( array_keys( $server ) as $field ) {
+				if ( isset( $assoc_args[ $field ] ) && ! in_array( $server[ $field ], array_map( 'trim', explode( ',', $assoc_args[ $field ] ) ), true ) ) {
+					continue 2;
+				}
+			}
+
 			$servers[] = [
 				'name'   => $name,
 				'server' => $server['server'],
@@ -83,6 +95,8 @@ class McpServerCommand extends WP_CLI_Command {
 	 *     $ wp mcp server add "server-filesystem" "npx -y @modelcontextprotocol/server-filesystem /my/allowed/folder/"
 	 *     Success: Server added.
 	 *
+	 * @when before_wp_load
+	 *
 	 * @param array $args Indexed array of positional arguments.
 	 */
 	public function add( $args ): void {
@@ -93,7 +107,7 @@ class McpServerCommand extends WP_CLI_Command {
 		} else {
 			$config[ $args[0] ] = [
 				'server' => $args[1],
-				'status' => 'enabled',
+				'status' => 'active',
 			];
 
 			$result = $this->get_config()->update_config( $config );
@@ -123,6 +137,8 @@ class McpServerCommand extends WP_CLI_Command {
 	 *     $ wp mcp server remove "server-filesystem"
 	 *     Success: Server removed.
 	 *
+	 * @when before_wp_load
+	 *
 	 * @param array $args Indexed array of positional arguments.
 	 */
 	public function remove( $args, $assoc_args ): void {
@@ -143,7 +159,7 @@ class McpServerCommand extends WP_CLI_Command {
 				WP_CLI::warning( "Server '$server' not found." );
 				++$errors;
 			} else {
-				unset( $config[ $args[0] ] );
+				unset( $config[ $server ] );
 				++$successes;
 			}
 		}
@@ -172,8 +188,10 @@ class McpServerCommand extends WP_CLI_Command {
 	 * ## EXAMPLES
 	 *
 	 *     # Remove server.
-	 *     $ wp mcp server update "server-filesystem" --status=disabled
+	 *     $ wp mcp server update "server-filesystem" --status=inactive
 	 *     Success: Server updated.
+	 *
+	 * @when before_wp_load
 	 *
 	 * @param array $args Indexed array of positional arguments.
 	 */
@@ -187,10 +205,16 @@ class McpServerCommand extends WP_CLI_Command {
 		foreach ( $config[ $args[0] ] as $key => $value ) {
 			if ( isset( $assoc_args[ $key ] ) ) {
 				if ( 'status' === $key ) {
-					$value = 'disabled' === $value ? 'enabled' : 'disabled';
+					$value = 'inactive' === $value ? 'active' : 'inactive';
 				}
 				$config[ $args[0] ][ $key ] = $value;
 			}
+		}
+
+		// Special case for renaming an entry.
+		if ( isset( $assoc_args['name'] ) ) {
+			$config[ $assoc_args['name'] ] = $config[ $args[0] ];
+			unset( $config[ $args[0] ] );
 		}
 
 		$result = $this->get_config()->update_config( $config );
