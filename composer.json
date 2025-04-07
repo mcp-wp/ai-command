@@ -7,7 +7,7 @@
     "authors": [],
     "require": {
         "php": "^8.2",
-        "logiscape/mcp-sdk-php": "^1.0",
+        "logiscape/mcp-sdk-php": "dev-main",
         "mcaskill/composer-exclude-files": "^4.0",
         "mcp-wp/mcp-server": "dev-main",
         "wp-cli/wp-cli": "^2.11"
