@@ -159,7 +159,7 @@ class McpServerCommand extends WP_CLI_Command {
 				WP_CLI::warning( "Server '$server' not found." );
 				++$errors;
 			} else {
-				unset( $config[ $args[0] ] );
+				unset( $config[ $server ] );
 				++$successes;
 			}
 		}

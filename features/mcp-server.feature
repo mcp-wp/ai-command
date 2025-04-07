@@ -1,5 +1,9 @@
 Feature: MCP server command
 
+  Background:
+    Given an empty directory
+    And an empty {HOME} directory
+
   Scenario: CRUD
 
     When I run `wp mcp server add foo "https://foo.example.com/mcp"`
@@ -18,7 +22,12 @@ Feature: MCP server command
       | baz | https://baz.example.com/mcp | active |
 
     When I run `wp mcp server remove bar baz`
-    And I run `wp mcp server list`
+    Then STDOUT should contain:
+      """
+      Success: Removed 2 of 2 servers.
+      """
+
+    When I run `wp mcp server list`
     Then STDOUT should contain:
       """
       foo.example.com
