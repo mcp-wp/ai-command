@@ -148,19 +148,25 @@ class AiCommand extends WP_CLI_Command {
 		$servers = array_values( ( new McpConfig() )->get_config() );
 
 		foreach ( $servers as $args ) {
-			if ( str_starts_with( $args, 'http://' ) || str_starts_with( $args, 'https://' ) ) {
+			if ( 'enabled' !== $args['status'] ) {
+				continue;
+			}
+
+			$server = $args['server'];
+
+			if ( str_starts_with( $server, 'http://' ) || str_starts_with( $server, 'https://' ) ) {
 				$sessions[] = ( new Client( new CliLogger() ) )->connect(
-					$args
+					$server
 				);
 				continue;
 			}
 
-			$args       = explode( ' ', $args );
-			$cmd_or_url = array_shift( $args );
+			$server     = explode( ' ', $server );
+			$cmd_or_url = array_shift( $server );
 
 			$sessions[] = ( new Client( new CliLogger() ) )->connect(
 				$cmd_or_url,
-				$args,
+				$server,
 			);
 		}
 
