@@ -5,7 +5,6 @@ Feature: MCP server command
     And an empty {HOME} directory
 
   Scenario: CRUD
-
     When I run `wp mcp server add foo "https://foo.example.com/mcp"`
     Then STDOUT should contain:
       """
@@ -58,7 +57,8 @@ Feature: MCP server command
     When I run `wp mcp server list --status=inactive`
     Then STDOUT should be a table containing rows:
       | name | server | status |
-      | baz | https://baz.example.com/mcp | active |
+      | bar | https://bar.example.com/mcp | inactive |
+
     And STDOUT should not contain:
       """
       foo.example.com
@@ -67,3 +67,14 @@ Feature: MCP server command
       """
       baz.example.com
       """
+
+    When I run `wp mcp server update foo --name=fabulous`
+    Then STDOUT should contain:
+      """
+      Server updated.
+      """
+
+    When I run `wp mcp server list`
+    Then STDOUT should be a table containing rows:
+      | name | server | status |
+      | fabulous | https://foo.example.com/mcp | active |
