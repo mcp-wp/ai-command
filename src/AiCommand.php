@@ -148,7 +148,7 @@ class AiCommand extends WP_CLI_Command {
 		$servers = array_values( ( new McpConfig() )->get_config() );
 
 		foreach ( $servers as $args ) {
-			if ( 'enabled' !== $args['status'] ) {
+			if ( 'active' !== $args['status'] ) {
 				continue;
 			}
 
