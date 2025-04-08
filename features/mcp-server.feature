@@ -1,9 +1,4 @@
 Feature: MCP server command
-
-  Background:
-    Given an empty directory
-    And an empty {HOME} directory
-
   Scenario: CRUD
     When I run `wp mcp server add foo "https://foo.example.com/mcp"`
     Then STDOUT should contain:

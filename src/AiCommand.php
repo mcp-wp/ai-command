@@ -8,6 +8,7 @@ use McpWp\AiCommand\MCP\Client;
 use McpWp\AiCommand\Utils\CliLogger;
 use McpWp\AiCommand\Utils\McpConfig;
 use McpWp\MCP\Servers\WordPress\WordPress;
+use WP_CLI;
 use WP_CLI\Utils;
 use WP_CLI_Command;
 
@@ -52,7 +53,13 @@ class AiCommand extends WP_CLI_Command {
 	public function __invoke( $args, $assoc_args ) {
 		$with_wordpress = null === Utils\get_flag_value( $assoc_args, 'skip-wordpress' );
 		if ( $with_wordpress ) {
-			\WP_CLI::get_runner()->load_wordpress();
+			WP_CLI::get_runner()->load_wordpress();
+		} else {
+			WP_CLI::error( 'Not implemented yet.' );
+		}
+
+		if ( ! function_exists( '\ai_services' ) ) {
+			WP_CLI::error( 'This command currently requires the AI Services plugin. You can install it with `wp plugin install ai-services --activate`.' );
 		}
 
 		$with_builtin_servers = null === Utils\get_flag_value( $assoc_args, 'skip-built-in-servers' );

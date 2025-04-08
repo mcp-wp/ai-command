@@ -15,6 +15,7 @@
     "require-dev": {
         "humbug/php-scoper": "^0.18.17",
         "roave/security-advisories": "dev-latest",
+        "wp-cli/extension-command": "^2.1",
         "wp-cli/wp-cli-tests": "^v4.3.9"
     },
     "config": {
