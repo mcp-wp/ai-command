@@ -8,7 +8,6 @@
     "require": {
         "php": "^8.2",
         "logiscape/mcp-sdk-php": "dev-main",
-        "mcaskill/composer-exclude-files": "^4.0",
         "mcp-wp/mcp-server": "dev-main",
         "wp-cli/wp-cli": "^2.11"
     },
@@ -24,7 +23,6 @@
         "allow-plugins": {
             "composer/installers": true,
             "dealerdirect/phpcodesniffer-composer-installer": true,
-            "mcaskill/composer-exclude-files": true,
             "php-http/discovery": true
         }
     },
@@ -38,8 +36,6 @@
             "mcp server list",
             "mcp server add",
             "mcp server remove"
-        ],
-        "exclude-from-files": [
         ],
       "installer-disable": true
     },
