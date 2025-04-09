@@ -33,9 +33,11 @@
         "bundled": false,
         "commands": [
             "ai",
-            "mcp server list",
+            "mcp prompt",
             "mcp server add",
-            "mcp server remove"
+            "mcp server list",
+            "mcp server remove",
+            "mcp server update"
         ],
       "installer-disable": true
     },
