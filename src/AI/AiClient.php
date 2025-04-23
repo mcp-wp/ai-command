@@ -16,9 +16,13 @@ use function cli\menu;
 use function cli\prompt;
 
 class AiClient {
-	private $needs_approval = true;
+	private bool $needs_approval = true;
 
-	public function __construct( private readonly array $tools, private readonly bool $approval_mode ) {}
+	public function __construct(
+		private readonly array $tools,
+		private readonly bool $approval_mode,
+		private readonly ?string $model
+	) {}
 
 	/**
 	 * Calls a given tool.
@@ -88,17 +92,11 @@ class AiClient {
 				]
 			);
 
-			if ( $service->get_service_slug() === 'openai' ) {
-				$model = 'gpt-4o';
-			} else {
-				$model = 'gemini-2.0-flash';
-			}
-
 			$candidates = $service
 				->get_model(
 					[
 						'feature'      => 'text-generation',
-						'model'        => $model,
+						'model'        => $this->model,
 						'tools'        => $tools,
 						'capabilities' => [
 							AI_Capability::MULTIMODAL_INPUT,

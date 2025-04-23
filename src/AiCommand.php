@@ -36,6 +36,11 @@ class AiCommand extends WP_CLI_Command {
 	 * [--approval-mode]
 	 * : Approve tool usage before running.
 	 *
+	 * [--model]
+	 * : Manually specify the LLM model that should be used.
+	 * Depends on the available AI services.
+	 * Examples: 'gemini-2.0-flash', 'gpt-4o'.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     # Get data from WordPress
@@ -71,8 +76,9 @@ class AiCommand extends WP_CLI_Command {
 		$tools    = $this->get_tools( $sessions );
 
 		$approval_mode = (bool) Utils\get_flag_value( $assoc_args, 'approval-mode', false );
+		$model         = Utils\get_flag_value( $assoc_args, 'model' );
 
-		$ai_client = new AiClient( $tools, $approval_mode );
+		$ai_client = new AiClient( $tools, $approval_mode, $model );
 
 		$ai_client->call_ai_service_with_prompt( $args[0] );
 	}
