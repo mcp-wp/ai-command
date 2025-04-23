@@ -131,20 +131,22 @@ class AiClient {
 
 					if ( $this->approval_mode && $this->needs_approval ) {
 						WP_CLI::line(
-							sprintf(
-								"Run tool \"%s\" from \"%s\"?\nNote: Running tools from untrusted servers could have unintended consequences. Review each action carefully before approving.",
-								$part->get_name(),
-								$this->get_tool_server_name( $part->get_name() )
+							WP_CLI::colorize(
+								sprintf(
+									"Run tool \"%%b%s%%n\" from \"%%b%s%%n\"?\n%%yNote:%%n Running tools from untrusted servers could have unintended consequences. Review each action carefully before approving.",
+									$part->get_name(),
+									$this->get_tool_server_name( $part->get_name() )
+								)
 							)
 						);
 						$result = menu(
 							[
 								'y' => 'Allow once',
 								'a' => 'Always allow',
-								'n' => 'Deny',
+								'n' => 'Deny once',
 							],
 							'y',
-							'Run tool?',
+							'Run tool? Choose between 1-3',
 						);
 
 						if ( 'n' === $result ) {
@@ -186,7 +188,7 @@ class AiClient {
 
 			// Keep the session open to continue chatting.
 
-			WP_CLI::line( $text );
+			WP_CLI::line( WP_CLI::colorize( "%G$text%n " ) );
 
 			$response = prompt( '', false, '' );
 
