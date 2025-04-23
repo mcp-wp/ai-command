@@ -154,11 +154,7 @@ class AiClient {
 						} elseif ( 'a' === $result ) {
 							$this->needs_approval = false;
 						}
-
-						var_dump( '$result', $result, $this->needs_approval );
 					}
-
-					var_dump( 'needs approval', $this->needs_approval );
 
 					if ( $can_call_tool ) {
 						$function_result = $this->call_tool(
