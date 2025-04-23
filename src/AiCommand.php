@@ -33,6 +33,9 @@ class AiCommand extends WP_CLI_Command {
 	 * [--skip-wordpress]
 	 * : Run command without loading WordPress. (Not implemented yet)
 	 *
+	 * [--approval-mode]
+	 * : Approve tool usage before running.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     # Get data from WordPress
@@ -67,26 +70,9 @@ class AiCommand extends WP_CLI_Command {
 		$sessions = $this->get_sessions( $with_wordpress && $with_builtin_servers, $with_builtin_servers );
 		$tools    = $this->get_tools( $sessions );
 
-		$ai_client = new AiClient(
-			$tools,
-			static function ( $tool_name, $tool_args ) use ( $sessions ) {
-				// Find the right tool from the right server.
-				foreach ( $sessions as $session ) {
-					foreach ( $session->listTools()->tools as $mcp_tool ) {
-						if ( $tool_name === $mcp_tool->name ) {
-							$result = $session->callTool( $tool_name, $tool_args );
-							// TODO: Convert ImageContent or EmbeddedResource into Blob?
+		$approval_mode = (bool) Utils\get_flag_value( $assoc_args, 'approval-mode', false );
 
-							// To trigger the jsonSerialize() methods.
-							// TODO: Return all array items, not just first one.
-							return json_decode( json_encode( $result->content[0] ), true );
-						}
-					}
-				}
-
-				return null;
-			}
-		);
+		$ai_client = new AiClient( $tools, $approval_mode );
 
 		$ai_client->call_ai_service_with_prompt( $args[0] );
 	}
@@ -100,7 +86,7 @@ class AiCommand extends WP_CLI_Command {
 	protected function get_tools( array $sessions ): array {
 		$function_declarations = [];
 
-		foreach ( $sessions as $session ) {
+		foreach ( $sessions as $name => $session ) {
 			foreach ( $session->listTools()->tools as $mcp_tool ) {
 				$parameters = json_decode( json_encode( $mcp_tool->inputSchema->jsonSerialize() ), true );
 				unset( $parameters['additionalProperties'], $parameters['$schema'] );
@@ -123,6 +109,15 @@ class AiCommand extends WP_CLI_Command {
 					'name'        => $mcp_tool->name,
 					'description' => $mcp_tool->description,
 					'parameters'  => $parameters,
+					'server'      => $name,
+					'callback'    => static function ( mixed $tool_args ) use ( $mcp_tool, $session ) {
+						$result = $session->callTool( $mcp_tool->name, $tool_args );
+						// TODO: Convert ImageContent or EmbeddedResource into Blob?
+
+						// To trigger the jsonSerialize() methods.
+						// TODO: Return all array items, not just first one.
+						return json_decode( json_encode( $result->content[0] ), true );
+					},
 				];
 			}
 		}
@@ -141,20 +136,20 @@ class AiCommand extends WP_CLI_Command {
 		$sessions = [];
 
 		if ( $with_cli_server ) {
-			$sessions[] = ( new Client( new CliLogger() ) )->connect(
+			$sessions['current_site'] = ( new Client( new CliLogger() ) )->connect(
 				MCP\Servers\WP_CLI\WP_CLI::class
 			);
 		}
 
 		if ( $with_wp_server ) {
-			$sessions[] = ( new Client( new CliLogger() ) )->connect(
+			$sessions['wp_cli'] = ( new Client( new CliLogger() ) )->connect(
 				WordPress::class
 			);
 		}
 
-		$servers = array_values( ( new McpConfig() )->get_config() );
+		$servers = ( new McpConfig() )->get_config();
 
-		foreach ( $servers as $args ) {
+		foreach ( $servers as $name => $args ) {
 			if ( 'active' !== $args['status'] ) {
 				continue;
 			}
@@ -171,7 +166,7 @@ class AiCommand extends WP_CLI_Command {
 			$server     = explode( ' ', $server );
 			$cmd_or_url = array_shift( $server );
 
-			$sessions[] = ( new Client( new CliLogger() ) )->connect(
+			$sessions[ $name ] = ( new Client( new CliLogger() ) )->connect(
 				$cmd_or_url,
 				$server,
 			);
