@@ -5,6 +5,7 @@ namespace McpWp\AiCommand\MCP\Servers\WP_CLI\Tools;
 use McpWp\MCP\Server;
 use Psr\Log\LoggerInterface;
 use WP_CLI;
+use WP_CLI\Dispatcher\CompositeCommand;
 use WP_CLI\SynopsisParser;
 
 /**
@@ -35,15 +36,16 @@ readonly class CliCommands {
 		foreach ( $commands as $command ) {
 			[$command] = WP_CLI::get_runner()->find_command_to_run( [ $command ] );
 
-			if ( ! is_object( $command ) ) {
-				continue;
-			}
-
+			/**
+			 * Command class.
+			 *
+			 * @var WP_CLI\Dispatcher\RootCommand|WP_CLI\Dispatcher\Subcommand $command
+			 */
 			$command_name = $command->get_name();
 
 			if ( ! $command->can_have_subcommands() ) {
 
-				$command_desc     = $command->get_shortdesc() ?? "Runs WP-CLI command: $command_name";
+				$command_desc     = $command->get_shortdesc();
 				$command_synopsis = $command->get_synopsis();
 				$synopsis_spec    = SynopsisParser::parse( $command_synopsis );
 
@@ -57,7 +59,7 @@ readonly class CliCommands {
 
 				$this->logger->debug( 'Synopsis for command: ' . $command_name . ' - ' . print_r( $command_synopsis, true ) );
 
-				foreach ( $command_synopsis as $arg ) {
+				foreach ( $synopsis_spec as $arg ) {
 					if ( 'positional' === $arg['type'] || 'assoc' === $arg['type'] ) {
 						$prop_name                = str_replace( '-', '_', $arg['name'] );
 						$properties[ $prop_name ] = [

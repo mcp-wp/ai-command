@@ -8,7 +8,7 @@ use WP_CLI_Command;
 /**
  * McpConfig class.
  *
- * @phpstan-type McpConfigData array<string, array{server: string, status: "active"|"inactive"}>
+ * @phpstan-type McpConfigData array<string, array{server: string, status: string}>
  */
 class McpConfig extends WP_CLI_Command {
 	/**
