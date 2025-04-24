@@ -1,10 +1,11 @@
 parameters:
-	level: 2
+	level: 3
 	paths:
 		- ai-command.php
 		- src/
 	scanDirectories:
-		- vendor/felixarntz/ai-services/includes
+		- vendor/wpackagist-plugin/ai-services/includes
+		- vendor/wpackagist-plugin/ai-services/third-party
 		- vendor/wp-cli/wp-cli/bundle/rmccue/requests
 		- vendor/wp-cli/wp-cli/php
 	bootstrapFiles:

@@ -12,20 +12,23 @@
         "wp-cli/wp-cli": "^2.11"
     },
     "require-dev": {
-        "felixarntz/ai-services": "dev-main",
         "humbug/php-scoper": "^0.18.17",
         "phpstan/extension-installer": "^1.4",
         "phpstan/phpstan": "^2.1",
         "phpstan/phpstan-strict-rules": "^2.0",
         "roave/security-advisories": "dev-latest",
         "wp-cli/extension-command": "^2.1",
-        "wp-cli/wp-cli-tests": "^v4.3.9"
+        "wp-cli/wp-cli-tests": "^v4.3.9",
+        "wpackagist-plugin/ai-services": "^0.6.0"
     },
-  "repositories": [
+  "repositories":[
     {
-      "type": "vcs",
-      "url": "https://github.com/felixarntz/ai-services",
-      "no-api": true
+      "type":"composer",
+      "url":"https://wpackagist.org",
+      "only": [
+        "wpackagist-plugin/*",
+        "wpackagist-theme/*"
+      ]
     }
   ],
     "config": {
