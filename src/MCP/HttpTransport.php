@@ -80,6 +80,8 @@ class HttpTransport {
 				$response = \WP_CLI\Utils\http_request(
 					'POST',
 					$this->url,
+					// Wrong PHPDoc in Requests?
+					// @phpstan-ignore argument.type
 					json_encode( $item, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES ),
 					[
 						'Content-Type'   => 'application/json',
