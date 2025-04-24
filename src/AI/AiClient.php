@@ -10,6 +10,8 @@ use Felix_Arntz\AI_Services\Services\API\Types\Parts;
 use Felix_Arntz\AI_Services\Services\API\Types\Parts\Function_Call_Part;
 use Felix_Arntz\AI_Services\Services\API\Types\Parts\Text_Part;
 use Felix_Arntz\AI_Services\Services\API\Types\Tools;
+use Felix_Arntz\AI_Services\Services\Contracts\Generative_AI_Model;
+use Felix_Arntz\AI_Services\Services\Contracts\With_Text_Generation;
 use InvalidArgumentException;
 use WP_CLI;
 use function cli\menu;
@@ -94,7 +96,12 @@ class AiClient {
 				]
 			);
 
-			$candidates = $service
+			/**
+			 * Text generation model.
+			 *
+			 * @var With_Text_Generation&Generative_AI_Model $model
+			 */
+			$model = $service
 				->get_model(
 					[
 						'feature'      => 'text-generation',
@@ -111,11 +118,15 @@ class AiClient {
 							'timeout' => 6000,
 						],
 					]
-				)
-				->generate_text( $contents );
+				);
+
+				$candidates = $model->generate_text( $contents );
 
 			$text = '';
-			foreach ( $candidates->get( 0 )->get_content()->get_parts() as $part ) {
+
+			$content = $candidates->get( 0 )->get_content() ?? [];
+
+			foreach ( $content->get_parts() as $part ) {
 				if ( $part instanceof Text_Part ) {
 					if ( '' !== $text ) {
 						$text .= "\n\n";

@@ -89,7 +89,7 @@ class HttpTransport {
 				);
 
 				if ( isset( $response->headers['mcp-session-id'] ) && ! isset( $this->session_id ) ) {
-					$this->session_id = (string) $response->headers['mcp-session-id'];
+					$this->session_id = $response->headers['mcp-session-id'];
 				}
 
 				if ( empty( $response->body ) ) {

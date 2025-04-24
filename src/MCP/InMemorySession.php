@@ -12,9 +12,12 @@ use Mcp\Types\JsonRpcMessage;
 use Mcp\Types\JSONRPCRequest;
 use Mcp\Types\JSONRPCResponse;
 use Mcp\Types\McpModel;
+use Mcp\Types\Request;
 use Mcp\Types\RequestId;
+use Mcp\Types\RequestParams;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use RuntimeException;
 
 class InMemorySession extends ClientSession {
 	private ?MemoryStream $read_stream;
@@ -58,6 +61,8 @@ class InMemorySession extends ClientSession {
 	 * @param string $result_type The fully-qualified class name of the expected result type (must implement McpModel). TODO: Implement.
 	 * @return McpModel The validated result object.
 	 * @throws McpError If an error response is received.
+	 *
+	 * @phpstan-param Request $request
 	 */
 	public function sendRequest( McpModel $request, string $result_type ): McpModel {
 		$this->validate_request_object( $request );
