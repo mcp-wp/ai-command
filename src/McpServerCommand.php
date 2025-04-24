@@ -142,7 +142,7 @@ class McpServerCommand extends WP_CLI_Command {
 	 * @param array $args Indexed array of positional arguments.
 	 */
 	public function remove( $args, $assoc_args ): void {
-		$all = Utils\get_flag_value( $assoc_args, 'all', false );
+		$all = (bool) Utils\get_flag_value( $assoc_args, 'all', false );
 
 		if ( ! $all && empty( $args ) ) {
 			WP_CLI::error( 'Please specify one or more servers, or use --all.' );

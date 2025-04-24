@@ -14,7 +14,7 @@
 		 verbose="true">
 	<testsuites>
 		<testsuite name="ai-command tests">
-			<directory suffix="Test.php">tests</directory>
+			<directory suffix="Test.php">tests/phpunit/tests</directory>
 		</testsuite>
 	</testsuites>
 

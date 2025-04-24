@@ -134,14 +134,15 @@ readonly class CliCommands {
 					];
 
 					foreach ( $synopsis_spec as $arg ) {
+						$prop_name = str_replace( '-', '_', $arg['name'] );
+
 						if ( 'positional' === $arg['type'] || 'assoc' === $arg['type'] ) {
-							$prop_name                = str_replace( '-', '_', $arg['name'] );
 							$properties[ $prop_name ] = [
 								'type'        => 'string',
 								'description' => $arg['description'] ?? "Parameter {$arg['name']}",
 							];
-
 						}
+
 						// TODO: Handle flag type parameters (boolean)
 
 						if ( ! isset( $arg['optional'] ) || ! $arg['optional'] ) {

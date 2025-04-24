@@ -12,11 +12,22 @@
         "wp-cli/wp-cli": "^2.11"
     },
     "require-dev": {
+        "felixarntz/ai-services": "dev-main",
         "humbug/php-scoper": "^0.18.17",
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-strict-rules": "^2.0",
         "roave/security-advisories": "dev-latest",
         "wp-cli/extension-command": "^2.1",
         "wp-cli/wp-cli-tests": "^v4.3.9"
     },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/felixarntz/ai-services",
+      "no-api": true
+    }
+  ],
     "config": {
         "lock": false,
         "process-timeout": 7200,
@@ -24,7 +35,8 @@
         "allow-plugins": {
             "composer/installers": true,
             "dealerdirect/phpcodesniffer-composer-installer": true,
-            "php-http/discovery": true
+            "php-http/discovery": true,
+            "phpstan/extension-installer": true
         }
     },
     "extra": {
@@ -62,9 +74,11 @@
         "phpcbf": "run-phpcbf-cleanup",
         "phpunit": "run-php-unit-tests",
         "prepare-tests": "install-package-tests",
+        "phpstan": "phpstan analyse --memory-limit=2048M",
         "test": [
             "@lint",
             "@phpcs",
+            "@phpstan",
             "@phpunit",
             "@behat"
         ]

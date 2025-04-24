@@ -67,6 +67,8 @@ class AiClient {
 
 	private function call_ai_service( $contents ) {
 		// See https://github.com/felixarntz/ai-services/issues/25.
+		// Temporarily ignore error because eventually this should not be needed anymore.
+		// @phpstan-ignore function.notFound
 		add_filter(
 			'map_meta_cap',
 			static function () {
