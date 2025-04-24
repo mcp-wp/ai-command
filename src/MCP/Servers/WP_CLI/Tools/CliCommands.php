@@ -2,16 +2,24 @@
 
 namespace McpWp\AiCommand\MCP\Servers\WP_CLI\Tools;
 
+use McpWp\MCP\Server;
 use Psr\Log\LoggerInterface;
 use WP_CLI;
 use WP_CLI\SynopsisParser;
 
+/**
+ * @phpstan-import-type ToolDefinition from Server
+ */
 readonly class CliCommands {
 	public function __construct( private LoggerInterface $logger ) {
 	}
 
+	/**
+	 * Returns a list of tools.
+	 *
+	 * @return array<int, ToolDefinition> Tools.
+	 */
 	public function get_tools(): array {
-
 		// Expose WP-CLI commands as tools
 		$commands = [
 			'cache',

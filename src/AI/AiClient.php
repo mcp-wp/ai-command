@@ -17,9 +17,21 @@ use WP_CLI;
 use function cli\menu;
 use function cli\prompt;
 
+/**
+ * AI client class.
+ *
+ * @phpstan-type ToolDefinition array{name: string, description: string, parameters: array<string, array<string, mixed>>, server: string, callback: callable}
+ */
 class AiClient {
 	private bool $needs_approval = true;
 
+	/**
+	 * @param array       $tools         List of tools.
+	 * @param bool        $approval_mode Whether tool usage needs to be approved.
+	 * @param string|null $model         Model to use.
+	 *
+	 * @phpstan-param ToolDefinition[] $tools
+	 */
 	public function __construct(
 		private readonly array $tools,
 		private readonly bool $approval_mode,
@@ -59,7 +71,7 @@ class AiClient {
 		throw new InvalidArgumentException( 'Tool "' . $tool_name . '" not found.' );
 	}
 
-	public function call_ai_service_with_prompt( string $prompt ) {
+	public function call_ai_service_with_prompt( string $prompt ): void {
 		$parts = new Parts();
 		$parts->add_text_part( $prompt );
 		$content = new Content( Content_Role::USER, $parts );
@@ -67,7 +79,13 @@ class AiClient {
 		$this->call_ai_service( [ $content ] );
 	}
 
-	private function call_ai_service( $contents ) {
+	/**
+	 * Calls AI service with given contents.
+	 *
+	 * @param Content[] $contents Contents to send to AI.
+	 * @return void
+	 */
+	private function call_ai_service( $contents ): void {
 		// See https://github.com/felixarntz/ai-services/issues/25.
 		// Temporarily ignore error because eventually this should not be needed anymore.
 		// @phpstan-ignore function.notFound

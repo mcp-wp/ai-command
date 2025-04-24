@@ -7,6 +7,7 @@ use McpWp\AiCommand\AI\AiClient;
 use McpWp\AiCommand\MCP\Client;
 use McpWp\AiCommand\Utils\CliLogger;
 use McpWp\AiCommand\Utils\McpConfig;
+use McpWp\MCP\Server;
 use McpWp\MCP\Servers\WordPress\WordPress;
 use WP_CLI;
 use WP_CLI\Utils;
@@ -16,6 +17,8 @@ use WP_CLI_Command;
  * AI command class.
  *
  * Allows interacting with an LLM using MCP.
+ *
+ * @phpstan-import-type ToolDefinition from AiClient
  */
 class AiCommand extends WP_CLI_Command {
 
@@ -55,10 +58,10 @@ class AiCommand extends WP_CLI_Command {
 	 *
 	 * @when before_wp_load
 	 *
-	 * @param array $args Indexed array of positional arguments.
-	 * @param array $assoc_args Associative array of associative arguments.
+	 * @param string[] $args Indexed array of positional arguments.
+	 * @param array<string, string> $assoc_args Associative arguments.
 	 */
-	public function __invoke( $args, $assoc_args ) {
+	public function __invoke( array $args, array $assoc_args ): void {
 		$with_wordpress = null === Utils\get_flag_value( $assoc_args, 'skip-wordpress' );
 		if ( $with_wordpress ) {
 			WP_CLI::get_runner()->load_wordpress();
@@ -88,6 +91,8 @@ class AiCommand extends WP_CLI_Command {
 	 *
 	 * @param array<ClientSession> $sessions List of available sessions.
 	 * @return array List of tools.
+	 *
+	 * @phpstan-return ToolDefinition[]
 	 */
 	protected function get_tools( array $sessions ): array {
 		$function_declarations = [];

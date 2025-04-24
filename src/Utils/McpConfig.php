@@ -7,12 +7,15 @@ use WP_CLI_Command;
 
 /**
  * McpConfig class.
+ *
+ * @phpstan-type McpConfigData array<string, array{server: string, status: "active"|"inactive"}>
  */
 class McpConfig extends WP_CLI_Command {
 	/**
 	 * Returns the current MCP config.
 	 *
 	 * @return array Config data.
+	 * @phpstan-return McpConfigData
 	 */
 	public function get_config() {
 		$config_file = Utils\get_home_dir() . '/.wp-cli/ai-command.json';
@@ -31,6 +34,7 @@ class McpConfig extends WP_CLI_Command {
 	 *
 	 * @param array $new_config Updated config.
 	 * @return bool Whether updating was successful.
+	 * @phpstan-param McpConfigData $new_config
 	 */
 	public function update_config( $new_config ): bool {
 		$config_file = Utils\get_home_dir() . '/.wp-cli/ai-command.json';

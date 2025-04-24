@@ -25,9 +25,9 @@ class Client extends McpCLient {
 
 	/**
 	 * @param string|class-string<Server> $command_or_url Class name, command, or URL.
-	 * @param array $args Unused.
-	 * @param array|null $env Unused.
-	 * @param float|null $read_timeout Unused.
+	 * @param array<int|string, string>   $args           Unused.
+	 * @param array<string, string>|null  $env            Unused.
+	 * @param float|null                  $read_timeout   Unused.
 	 * @return ClientSession
 	 */
 	public function connect(
@@ -36,7 +36,6 @@ class Client extends McpCLient {
 		?array $env = null,
 		?float $read_timeout = null
 	): ClientSession {
-		$session = null;
 		if ( class_exists( $command_or_url ) ) {
 			/**
 			 * @var Server $server

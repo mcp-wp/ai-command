@@ -47,8 +47,8 @@ class McpServerCommand extends WP_CLI_Command {
 	 *
 	 * @when before_wp_load
 	 *
-	 * @param array $args Indexed array of positional arguments.
-	 * @param array $assoc_args Associative array of associative arguments.
+	 * @param string[] $args Indexed array of positional arguments.
+	 * @param array<string, string> $assoc_args Associative arguments.
 	 */
 	public function list_( $args, $assoc_args ): void {
 		$config = $this->get_config()->get_config();
@@ -97,7 +97,7 @@ class McpServerCommand extends WP_CLI_Command {
 	 *
 	 * @when before_wp_load
 	 *
-	 * @param array $args Indexed array of positional arguments.
+	 * @param string[] $args Indexed array of positional arguments.
 	 */
 	public function add( $args ): void {
 		$config = $this->get_config()->get_config();
@@ -139,7 +139,8 @@ class McpServerCommand extends WP_CLI_Command {
 	 *
 	 * @when before_wp_load
 	 *
-	 * @param array $args Indexed array of positional arguments.
+	 * @param string[] $args Indexed array of positional arguments.
+	 * @param array<string, string> $assoc_args Associative arguments.
 	 */
 	public function remove( $args, $assoc_args ): void {
 		$all = (bool) Utils\get_flag_value( $assoc_args, 'all', false );
@@ -193,9 +194,10 @@ class McpServerCommand extends WP_CLI_Command {
 	 *
 	 * @when before_wp_load
 	 *
-	 * @param array $args Indexed array of positional arguments.
+	 * @param string[] $args Indexed array of positional arguments.
+	 * @param array<string, string> $assoc_args Associative arguments.
 	 */
-	public function update( $args, $assoc_args ): void {
+	public function update( $args, array $assoc_args ): void {
 		$config = $this->get_config()->get_config();
 
 		if ( ! isset( $config[ $args[0] ] ) ) {
@@ -229,11 +231,14 @@ class McpServerCommand extends WP_CLI_Command {
 	/**
 	 * Returns a Formatter object based on supplied parameters.
 	 *
-	 * @param array $assoc_args Parameters passed to command. Determines formatting.
+	 * @param array<string, string> $assoc_args Parameters passed to command. Determines formatting.
 	 * @return Formatter
+	 * @param-out array<string, string> $assoc_args
 	 */
-	protected function get_formatter( &$assoc_args ) {
+	protected function get_formatter( array &$assoc_args ) {
 		return new Formatter(
+			// TODO: Fix type.
+			// @phpstan-ignore paramOut.type
 			$assoc_args,
 			[
 				'name',

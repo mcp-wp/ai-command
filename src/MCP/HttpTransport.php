@@ -29,9 +29,9 @@ class HttpTransport {
 	/**
 	 * SseTransport constructor.
 	 *
-	 * @param string             $url            The HTTP endpoint URL.
-	 * @param array              $options        Requests options.
-	 * @param LoggerInterface|null $logger      PSR-3 compliant logger.
+	 * @param string               $url     The HTTP endpoint URL.
+	 * @param array<string, mixed> $options Requests options.
+	 * @param LoggerInterface|null $logger  PSR-3 compliant logger.
 	 *
 	 * @throws InvalidArgumentException If the URL is empty.
 	 */
@@ -55,6 +55,11 @@ class HttpTransport {
 
 			private ?string $session_id = null;
 
+			/**
+			 * @param string               $url     URL to connect to.
+			 * @param array<string, mixed> $options Requests options.
+			 * @param LoggerInterface      $logger  PSR-3 compliant logger.
+			 */
 			public function __construct( private readonly string $url, private readonly array $options, LoggerInterface $logger ) {
 				$this->logger = $logger;
 			}
@@ -110,7 +115,7 @@ class HttpTransport {
 			/**
 			 * Instantiate a JsonRpcMessage from decoded data.
 			 *
-			 * @param array $data The decoded JSON data.
+			 * @param array<string, mixed> $data The decoded JSON data.
 			 *
 			 * @return JsonRpcMessage The instantiated JsonRpcMessage object.
 			 *

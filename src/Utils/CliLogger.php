@@ -11,7 +11,8 @@ class CliLogger implements LoggerInterface {
 	/**
 	 * System is unusable.
 	 *
-	 * @param mixed[] $context
+	 * @param string $message Message.
+	 * @param mixed[] $context Context.
 	 */
 	public function emergency( $message, array $context = [] ): void {
 		WP_CLI::error( $message );
@@ -23,7 +24,8 @@ class CliLogger implements LoggerInterface {
 	 * Example: Entire website down, database unavailable, etc. This should
 	 * trigger the SMS alerts and wake you up.
 	 *
-	 * @param mixed[] $context
+	 * @param string $message Message.
+	 * @param mixed[] $context Context.
 	 */
 	public function alert( $message, array $context = [] ): void {
 		WP_CLI::error( $message );
@@ -34,7 +36,8 @@ class CliLogger implements LoggerInterface {
 	 *
 	 * Example: Application component unavailable, unexpected exception.
 	 *
-	 * @param mixed[] $context
+	 * @param string $message Message.
+	 * @param mixed[] $context Context.
 	 */
 	public function critical( $message, array $context = [] ): void {
 		WP_CLI::error( $message );
@@ -44,7 +47,8 @@ class CliLogger implements LoggerInterface {
 	 * Runtime errors that do not require immediate action but should typically
 	 * be logged and monitored.
 	 *
-	 * @param mixed[] $context
+	 * @param string $message Message.
+	 * @param mixed[] $context Context.
 	 */
 	public function error( $message, array $context = [] ): void {
 		WP_CLI::error( $message );
@@ -56,7 +60,8 @@ class CliLogger implements LoggerInterface {
 	 * Example: Use of deprecated APIs, poor use of an API, undesirable things
 	 * that are not necessarily wrong.
 	 *
-	 * @param mixed[] $context
+	 * @param string $message Message.
+	 * @param mixed[] $context Context.
 	 */
 	public function warning( $message, array $context = [] ): void {
 		WP_CLI::warning( $message );
@@ -65,7 +70,8 @@ class CliLogger implements LoggerInterface {
 	/**
 	 * Normal but significant events.
 	 *
-	 * @param mixed[] $context
+	 * @param string $message Message.
+	 * @param mixed[] $context Context.
 	 */
 	public function notice( $message, array $context = [] ): void {
 		WP_CLI::debug( $message, 'ai-command' );
@@ -76,7 +82,8 @@ class CliLogger implements LoggerInterface {
 	 *
 	 * Example: User logs in, SQL logs.
 	 *
-	 * @param mixed[] $context
+	 * @param string $message Message.
+	 * @param mixed[] $context Context.
 	 */
 	public function info( $message, array $context = [] ): void {
 		WP_CLI::debug( $message, 'ai-command' );
@@ -85,7 +92,8 @@ class CliLogger implements LoggerInterface {
 	/**
 	 * Detailed debug information.
 	 *
-	 * @param mixed[] $context
+	 * @param string $message Message.
+	 * @param mixed[] $context Context.
 	 */
 	public function debug( $message, array $context = [] ): void {
 		WP_CLI::debug( $message, 'ai-command' );
@@ -94,8 +102,9 @@ class CliLogger implements LoggerInterface {
 	/**
 	 * Logs with an arbitrary level.
 	 *
-	 * @param mixed $level
-	 * @param mixed[] $context
+	 * @param mixed $level Log level.
+	 * @param string $message Message.
+	 * @param mixed[] $context Context.
 	 *
 	 * @throws InvalidArgumentException
 	 */
