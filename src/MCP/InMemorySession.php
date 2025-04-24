@@ -20,9 +20,9 @@ use Psr\Log\NullLogger;
 use RuntimeException;
 
 class InMemorySession extends ClientSession {
-	private ?MemoryStream $read_stream;
+	private MemoryStream $read_stream;
 
-	private ?MemoryStream $write_stream;
+	private MemoryStream $write_stream;
 
 	private LoggerInterface|NullLogger $logger;
 

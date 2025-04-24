@@ -76,7 +76,6 @@ class Client extends McpCLient {
 			$url = $url_parts['scheme'] . '://' . $url_parts['host'] . $url_parts['path'];
 
 			$transport = new HttpTransport( $url, $options, $this->logger );
-			$transport->connect();
 
 			[$read_stream, $write_stream] = $transport->connect();
 
