@@ -25,7 +25,12 @@ class McpConfig extends WP_CLI_Command {
 		}
 
 		$json_content = file_get_contents( $config_file );
-		$config       = json_decode( $json_content, true );
+
+		if ( false === $json_content ) {
+			return [];
+		}
+
+		$config = json_decode( $json_content, true, 512, JSON_THROW_ON_ERROR );
 		return null !== $config ? (array) $config : [];
 	}
 

@@ -47,7 +47,13 @@ readonly class CliCommands {
 
 				$command_desc     = $command->get_shortdesc();
 				$command_synopsis = $command->get_synopsis();
-				$synopsis_spec    = SynopsisParser::parse( $command_synopsis );
+
+				/**
+				 * Parsed synopsys.
+				 *
+				 * @var array<int, array{optional?: bool, type: string, repeating: bool, name: string}> $synopsis_spec
+				 */
+				$synopsis_spec = SynopsisParser::parse( $command_synopsis );
 
 				$properties = [];
 				$required   = [];
@@ -64,7 +70,7 @@ readonly class CliCommands {
 						$prop_name                = str_replace( '-', '_', $arg['name'] );
 						$properties[ $prop_name ] = [
 							'type'        => 'string',
-							'description' => $arg['description'] ?? "Parameter {$arg['name']}",
+							'description' => "Parameter {$arg['name']}",
 						];
 
 						if ( ! isset( $arg['optional'] ) || ! $arg['optional'] ) {
@@ -133,7 +139,13 @@ readonly class CliCommands {
 					$subcommand_name     = $subcommand->get_name();
 					$subcommand_desc     = $subcommand->get_shortdesc() ?? "Runs WP-CLI command: $subcommand_name";
 					$subcommand_synopsis = $subcommand->get_synopsis();
-					$synopsis_spec       = SynopsisParser::parse( $subcommand_synopsis );
+
+					/**
+					 * Parsed synopsys.
+					 *
+					 * @var array<int, array{optional?: bool, type: string, repeating: bool, name: string}> $synopsis_spec
+					 */
+					$synopsis_spec = SynopsisParser::parse( $subcommand_synopsis );
 
 					$properties = [];
 					$required   = [];
@@ -149,7 +161,7 @@ readonly class CliCommands {
 						if ( 'positional' === $arg['type'] || 'assoc' === $arg['type'] ) {
 							$properties[ $prop_name ] = [
 								'type'        => 'string',
-								'description' => $arg['description'] ?? "Parameter {$arg['name']}",
+								'description' => "Parameter {$arg['name']}",
 							];
 						}
 

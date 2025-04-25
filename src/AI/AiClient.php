@@ -142,9 +142,9 @@ class AiClient {
 
 			$text = '';
 
-			$content = $candidates->get( 0 )->get_content() ?? [];
+			$parts = $candidates->get( 0 )->get_content()?->get_parts() ?? new Parts();
 
-			foreach ( $content->get_parts() as $part ) {
+			foreach ( $parts as $part ) {
 				if ( $part instanceof Text_Part ) {
 					if ( '' !== $text ) {
 						$text .= "\n\n";

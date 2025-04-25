@@ -63,7 +63,9 @@ class Client extends McpCLient {
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url
 		$url_parts = parse_url( $command_or_url );
 
-		if ( isset( $url_parts['scheme'] ) && in_array( strtolower( $url_parts['scheme'] ), [ 'http', 'https' ], true ) ) {
+		if (
+			isset( $url_parts['scheme'], $url_parts['host'] ) && in_array( strtolower( $url_parts['scheme'] ), [ 'http', 'https' ], true )
+		) {
 			$options = [
 				// Just for local debugging.
 				'verify' => false,
@@ -72,7 +74,7 @@ class Client extends McpCLient {
 				$options['auth'] = [ $url_parts['user'], $url_parts['pass'] ];
 			}
 
-			$url = $url_parts['scheme'] . '://' . $url_parts['host'] . $url_parts['path'];
+			$url = $url_parts['scheme'] . '://' . $url_parts['host'] . ( $url_parts['path'] ?? '' );
 
 			$transport = new HttpTransport( $url, $options, $this->logger );
 

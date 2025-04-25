@@ -99,7 +99,12 @@ class AiCommand extends WP_CLI_Command {
 
 		foreach ( $sessions as $name => $session ) {
 			foreach ( $session->listTools()->tools as $mcp_tool ) {
-				$parameters = json_decode( json_encode( $mcp_tool->inputSchema->jsonSerialize() ), true );
+				$parameters = json_decode(
+					json_encode( $mcp_tool->inputSchema->jsonSerialize(), JSON_THROW_ON_ERROR ),
+					true,
+					512,
+					JSON_THROW_ON_ERROR
+				);
 				unset( $parameters['additionalProperties'], $parameters['$schema'] );
 
 				// Not having any properties doesn't seem to work.
@@ -127,7 +132,12 @@ class AiCommand extends WP_CLI_Command {
 
 						// To trigger the jsonSerialize() methods.
 						// TODO: Return all array items, not just first one.
-						return json_decode( json_encode( $result->content[0] ), true );
+						return json_decode(
+							json_encode( $result->content[0], JSON_THROW_ON_ERROR ),
+							true,
+							512,
+							JSON_THROW_ON_ERROR
+						);
 					},
 				];
 			}
