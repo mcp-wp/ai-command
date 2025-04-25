@@ -51,11 +51,11 @@ class McpServerCommand extends WP_CLI_Command {
 	 * @param array<string, string> $assoc_args Associative arguments.
 	 */
 	public function list_( $args, $assoc_args ): void {
-		$config = $this->get_config()->get_config();
+		$_servers = $this->get_config()->get_servers();
 
 		$servers = [];
 
-		foreach ( $config as $name => $server ) {
+		foreach ( $_servers as $server ) {
 			// Support features like --status=active.
 			foreach ( array_keys( $server ) as $field ) {
 				if ( isset( $assoc_args[ $field ] ) && ! in_array( $server[ $field ], array_map( 'trim', explode( ',', $assoc_args[ $field ] ) ), true ) ) {
@@ -63,11 +63,7 @@ class McpServerCommand extends WP_CLI_Command {
 				}
 			}
 
-			$servers[] = [
-				'name'   => $name,
-				'server' => $server['server'],
-				'status' => $server['status'],
-			];
+			$servers[] = $server;
 		}
 
 		$formatter = $this->get_formatter( $assoc_args );
@@ -100,23 +96,18 @@ class McpServerCommand extends WP_CLI_Command {
 	 * @param string[] $args Indexed array of positional arguments.
 	 */
 	public function add( $args ): void {
-		$config = $this->get_config()->get_config();
-
-		if ( isset( $config[ $args[0] ] ) ) {
+		if ( $this->get_config()->has_server( $args[0] ) ) {
 			WP_CLI::error( 'Server already exists.' );
 		} else {
-			$config[ $args[0] ] = [
-				'server' => $args[1],
-				'status' => 'active',
-			];
+			$this->get_config()->add_server(
+				[
+					'name'   => $args[0],
+					'server' => $args[1],
+					'status' => 'active',
+				]
+			);
 
-			$result = $this->get_config()->update_config( $config );
-
-			if ( ! $result ) {
-				WP_CLI::error( 'Could not add server.' );
-			} else {
-				WP_CLI::success( 'Server added.' );
-			}
+			WP_CLI::success( 'Server added.' );
 		}
 	}
 
@@ -149,27 +140,18 @@ class McpServerCommand extends WP_CLI_Command {
 			WP_CLI::error( 'Please specify one or more servers, or use --all.' );
 		}
 
-		$config = $this->get_config()->get_config();
-
 		$successes = 0;
 		$errors    = 0;
 		$count     = count( $args );
 
 		foreach ( $args as $server ) {
-			if ( ! array_key_exists( $server, $config ) ) {
+			if ( ! $this->get_config()->has_server( $server ) ) {
 				WP_CLI::warning( "Server '$server' not found." );
 				++$errors;
 			} else {
-				unset( $config[ $server ] );
+				$this->get_config()->remove_server( $server );
 				++$successes;
 			}
-		}
-
-		$result = $this->get_config()->update_config( $config );
-
-		if ( ! $result ) {
-			$successes = 0;
-			$errors    = $count;
 		}
 
 		Utils\report_batch_operation_results( 'server', 'remove', $count, $successes, $errors );
@@ -198,34 +180,25 @@ class McpServerCommand extends WP_CLI_Command {
 	 * @param array<string, string> $assoc_args Associative arguments.
 	 */
 	public function update( $args, array $assoc_args ): void {
-		$config = $this->get_config()->get_config();
+		$server = $this->get_config()->get_server( $args[0] );
 
-		if ( ! isset( $config[ $args[0] ] ) ) {
+		if ( null === $server ) {
 			WP_CLI::error( "Server '$args[0]' not found." );
+			return;
 		}
 
-		foreach ( $config[ $args[0] ] as $key => $value ) {
+		foreach ( $server as $key => $value ) {
 			if ( isset( $assoc_args[ $key ] ) ) {
 				if ( 'status' === $key ) {
 					$value = 'inactive' === $value ? 'active' : 'inactive';
 				}
-				$config[ $args[0] ][ $key ] = $value;
+				$server[ $key ] = $value;
 			}
 		}
 
-		// Special case for renaming an entry.
-		if ( isset( $assoc_args['name'] ) ) {
-			$config[ $assoc_args['name'] ] = $config[ $args[0] ];
-			unset( $config[ $args[0] ] );
-		}
+		$this->get_config()->update_server( $args[0], $server );
 
-		$result = $this->get_config()->update_config( $config );
-
-		if ( ! $result ) {
-			WP_CLI::error( 'Could not update server.' );
-		} else {
-			WP_CLI::success( 'Server updated.' );
-		}
+		WP_CLI::success( 'Server updated.' );
 	}
 
 	/**

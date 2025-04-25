@@ -168,9 +168,9 @@ class AiCommand extends WP_CLI_Command {
 			);
 		}
 
-		$servers = ( new McpConfig() )->get_config();
+		$servers = ( new McpConfig() )->get_servers();
 
-		foreach ( $servers as $name => $args ) {
+		foreach ( $servers as  $args ) {
 			if ( 'active' !== $args['status'] ) {
 				continue;
 			}
@@ -187,7 +187,7 @@ class AiCommand extends WP_CLI_Command {
 			$server     = explode( ' ', $server );
 			$cmd_or_url = array_shift( $server );
 
-			$sessions[ $name ] = ( new Client( new CliLogger() ) )->connect(
+			$sessions[ $args['name'] ] = ( new Client( new CliLogger() ) )->connect(
 				$cmd_or_url,
 				$server,
 			);
