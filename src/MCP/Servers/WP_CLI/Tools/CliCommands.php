@@ -5,7 +5,6 @@ namespace McpWp\AiCommand\MCP\Servers\WP_CLI\Tools;
 use McpWp\MCP\Server;
 use Psr\Log\LoggerInterface;
 use WP_CLI;
-use WP_CLI\Dispatcher\CompositeCommand;
 use WP_CLI\SynopsisParser;
 
 /**
@@ -34,7 +33,14 @@ readonly class CliCommands {
 		$tools = [];
 
 		foreach ( $commands as $command ) {
-			[$command] = WP_CLI::get_runner()->find_command_to_run( [ $command ] );
+			$result = WP_CLI::get_runner()->find_command_to_run( [ $command ] );
+
+			// Command not found/installed.
+			if ( is_string( $result ) ) {
+				continue;
+			}
+
+			[ $command ] = $result;
 
 			/**
 			 * Command class.
