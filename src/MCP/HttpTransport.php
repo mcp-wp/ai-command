@@ -158,7 +158,7 @@ class HttpTransport {
 						return new JsonRpcMessage(
 							new JSONRPCError(
 								'2.0',
-								isset( $data['id'] ) ? new RequestId( $data['id'] ) : null,
+								new RequestId( $data['id'] ?? 0 ),
 								new JsonRpcErrorObject(
 									$error_data['code'],
 									$error_data['message'],
@@ -172,7 +172,7 @@ class HttpTransport {
 					return new JsonRpcMessage(
 						new JSONRPCResponse(
 							'2.0',
-							isset( $data['id'] ) ? new RequestId( $data['id'] ) : null,
+							new RequestId( $data['id'] ?? 0 ),
 							$data['result']
 						)
 					);

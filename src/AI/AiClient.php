@@ -20,7 +20,7 @@ use function cli\prompt;
 /**
  * AI client class.
  *
- * @phpstan-type ToolDefinition array{name: string, description: string, parameters: array<string, array<string, mixed>>, server: string, callback: callable}
+ * @phpstan-type ToolDefinition array{name: string, description: string|null, parameters: array<string, array<string, mixed>>, server: string, callback: callable}
  */
 class AiClient {
 	private bool $needs_approval = true;
