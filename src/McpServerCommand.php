@@ -188,8 +188,8 @@ class McpServerCommand extends WP_CLI_Command {
 		}
 
 		foreach ( $server as $key => $value ) {
-			$new_value = $assoc_args[ $key ];
 			if ( isset( $assoc_args[ $key ] ) ) {
+				$new_value = $assoc_args[ $key ];
 				if ( 'status' === $key ) {
 					$new_value = 'inactive' === $new_value ? 'active' : 'inactive';
 				}
