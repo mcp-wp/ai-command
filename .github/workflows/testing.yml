@@ -1,11 +1,10 @@
 name: Testing
 
 on:
-  pull_request:
+  push:
     branches:
       - main
-      - master
-  workflow_dispatch:
+  pull_request:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
