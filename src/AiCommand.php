@@ -39,6 +39,11 @@ class AiCommand extends WP_CLI_Command {
 	 * [--approval-mode]
 	 * : Approve tool usage before running.
 	 *
+	 * [--service]
+	 * : Manually specify the AI service to use.
+	 * Depends on the available AI services.
+	 * Examples: 'google', 'anthropic', 'openai'.
+	 *
 	 * [--model]
 	 * : Manually specify the LLM model that should be used.
 	 * Depends on the available AI services.
@@ -79,9 +84,10 @@ class AiCommand extends WP_CLI_Command {
 		$tools    = $this->get_tools( $sessions );
 
 		$approval_mode = (bool) Utils\get_flag_value( $assoc_args, 'approval-mode', false );
+		$service       = Utils\get_flag_value( $assoc_args, 'service' );
 		$model         = Utils\get_flag_value( $assoc_args, 'model' );
 
-		$ai_client = new AiClient( $tools, $approval_mode, $model );
+		$ai_client = new AiClient( $tools, $approval_mode, $service, $model );
 
 		$ai_client->call_ai_service_with_prompt( $args[0] );
 	}

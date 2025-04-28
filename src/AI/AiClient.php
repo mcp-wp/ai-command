@@ -35,6 +35,7 @@ class AiClient {
 	public function __construct(
 		private readonly array $tools,
 		private readonly bool $approval_mode,
+		private readonly ?string $service,
 		private readonly ?string $model
 	) {}
 
@@ -106,6 +107,7 @@ class AiClient {
 		try {
 			$service = ai_services()->get_available_service(
 				[
+					'slugs'        => $this->service ? [ $this->service ] : null,
 					'capabilities' => [
 						AI_Capability::MULTIMODAL_INPUT,
 						AI_Capability::TEXT_GENERATION,
