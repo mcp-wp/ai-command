@@ -77,7 +77,7 @@ readonly class CliCommands {
 
 			foreach ( $synopsis_spec as $arg ) {
 				if ( 'positional' === $arg['type'] || 'assoc' === $arg['type'] ) {
-					$prop_name                = str_replace( '-', '_', $arg['name'] );
+					$prop_name                = str_replace( [ '-', '|' ], '_', $arg['name'] );
 					$properties[ $prop_name ] = [
 						'type'        => 'string',
 						'description' => "Parameter {$arg['name']}",
