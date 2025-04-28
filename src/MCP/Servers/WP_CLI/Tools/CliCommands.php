@@ -106,7 +106,7 @@ readonly class CliCommands {
 					'properties' => $properties,
 					'required'   => $required,
 				],
-				'callable'    => function ( $params ) use ( $command_name, $synopsis_spec ) {
+				'callback'    => function ( $params ) use ( $command_name, $synopsis_spec ) {
 					$args       = [];
 					$assoc_args = [];
 
