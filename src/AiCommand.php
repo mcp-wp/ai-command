@@ -30,8 +30,10 @@ class AiCommand extends WP_CLI_Command {
 	 * <prompt>
 	 * : AI prompt.
 	 *
-	 * [--skip-builtin-servers]
-	 * : Skip loading the built-in servers.
+	 * [--skip-builtin-servers[=<server>]]
+	 * : Skip loading the built-in servers for WP-CLI and the current WordPress site.
+	 * Can be set to 'all' (skip both), 'cli' (skip the WP-CLI server),
+	 * or 'wp' (skip the WordPress server).
 	 *
 	 * [--skip-wordpress]
 	 * : Run command without loading WordPress. (Not implemented yet)
@@ -78,9 +80,9 @@ class AiCommand extends WP_CLI_Command {
 			WP_CLI::error( 'This command currently requires the AI Services plugin. You can install it with `wp plugin install ai-services --activate`.' );
 		}
 
-		$with_builtin_servers = null === Utils\get_flag_value( $assoc_args, 'skip-builtin-servers' );
+		$skip_builtin_servers = Utils\get_flag_value( $assoc_args, 'skip-builtin-servers', 'all' );
 
-		$sessions = $this->get_sessions( $with_wordpress && $with_builtin_servers, $with_builtin_servers );
+		$sessions = $this->get_sessions( $with_wordpress && 'cli' === $skip_builtin_servers, 'wp' === $skip_builtin_servers );
 		$tools    = $this->get_tools( $sessions );
 
 		$approval_mode = (bool) Utils\get_flag_value( $assoc_args, 'approval-mode', false );
