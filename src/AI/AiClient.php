@@ -99,11 +99,6 @@ class AiClient {
 
 		$new_contents = $contents;
 
-		$tools = new Tools();
-		if ( ! empty( $this->tools ) ) {
-			$tools->add_function_declarations_tool( $this->tools );
-		}
-
 		try {
 			$service = ai_services()->get_available_service(
 				[
@@ -115,6 +110,20 @@ class AiClient {
 					],
 				]
 			);
+
+			$all_tools = $this->tools;
+
+			$tools = new Tools();
+
+			if ( ! empty( $all_tools ) ) {
+				if ( 'openai' === $service->get_service_slug() ) {
+					$all_tools = array_slice( $all_tools, 0, 128 );
+				} elseif ( 'google' === $service->get_service_slug() ) {
+					$all_tools = array_slice( $all_tools, 0, 512 );
+				}
+
+				$tools->add_function_declarations_tool( $all_tools );
+			}
 
 			/**
 			 * Text generation model.
