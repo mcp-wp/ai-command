@@ -39,12 +39,12 @@ class AiCommand extends WP_CLI_Command {
 	 * [--approval-mode]
 	 * : Approve tool usage before running.
 	 *
-	 * [--service]
+	 * [--service=<service>]
 	 * : Manually specify the AI service to use.
 	 * Depends on the available AI services.
 	 * Examples: 'google', 'anthropic', 'openai'.
 	 *
-	 * [--model]
+	 * [--model=<model>]
 	 * : Manually specify the LLM model that should be used.
 	 * Depends on the available AI services.
 	 * Examples: 'gemini-2.0-flash', 'gpt-4o'.
