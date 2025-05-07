@@ -162,16 +162,18 @@ class AiCommand extends WP_CLI_Command {
 	 * @return ClientSession[]
 	 */
 	public function get_sessions( bool $with_wp_server, bool $with_cli_server ): array {
+		$logger = new CliLogger();
+
 		$sessions = [];
 
 		if ( $with_cli_server ) {
-			$sessions['current_site'] = ( new Client( new CliLogger() ) )->connect(
+			$sessions['current_site'] = ( new Client( $logger ) )->connect(
 				MCP\Servers\WP_CLI\WP_CLI::class
 			);
 		}
 
 		if ( $with_wp_server ) {
-			$sessions['wp_cli'] = ( new Client( new CliLogger() ) )->connect(
+			$sessions['wp_cli'] = ( new Client( $logger ) )->connect(
 				WordPress::class
 			);
 		}
@@ -186,7 +188,7 @@ class AiCommand extends WP_CLI_Command {
 			$server = $args['server'];
 
 			if ( str_starts_with( $server, 'http://' ) || str_starts_with( $server, 'https://' ) ) {
-				$sessions[] = ( new Client( new CliLogger() ) )->connect(
+				$sessions[] = ( new Client( $logger ) )->connect(
 					$server
 				);
 				continue;
@@ -195,7 +197,7 @@ class AiCommand extends WP_CLI_Command {
 			$server     = explode( ' ', $server );
 			$cmd_or_url = array_shift( $server );
 
-			$sessions[ $args['name'] ] = ( new Client( new CliLogger() ) )->connect(
+			$sessions[ $args['name'] ] = ( new Client( $logger ) )->connect(
 				$cmd_or_url,
 				$server,
 			);
