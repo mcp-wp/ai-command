@@ -7,7 +7,6 @@ use McpWp\AiCommand\AI\AiClient;
 use McpWp\AiCommand\MCP\Client;
 use McpWp\AiCommand\Utils\CliLogger;
 use McpWp\AiCommand\Utils\McpConfig;
-use McpWp\MCP\Server;
 use McpWp\MCP\Servers\WordPress\WordPress;
 use WP_CLI;
 use WP_CLI\Utils;

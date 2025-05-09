@@ -14,4 +14,5 @@ if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 
 WP_CLI::add_command( 'ai', AiCommand::class );
 WP_CLI::add_command( 'mcp prompt', AiCommand::class );
+WP_CLI::add_command( 'mcp', McpCommand::class );
 WP_CLI::add_command( 'mcp server', McpServerCommand::class );
