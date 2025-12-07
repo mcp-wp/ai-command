@@ -16,7 +16,7 @@ Feature: AI command
     When I try `wp ai "Hello World"`
     Then STDERR should contain:
       """
-      This command currently requires the AI Services plugin.
+      This command requires the AI Services plugin for MCP tool integration.
       """
 
     When I run `wp plugin install ai-services --activate`

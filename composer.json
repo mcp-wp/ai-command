@@ -50,6 +50,9 @@
         "bundled": false,
         "commands": [
             "ai",
+            "ai credentials list",
+            "ai credentials set",
+            "ai credentials delete",
             "mcp prompt",
             "mcp server add",
             "mcp server list",
