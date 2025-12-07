@@ -20,12 +20,12 @@ class CredentialsCommand extends WP_CLI_Command {
 	 *
 	 *     # List all credentials
 	 *     $ wp ai credentials list
-	 *     +----------+------------+
-	 *     | Provider | Status     |
-	 *     +----------+------------+
-	 *     | openai   | configured |
-	 *     | anthropic| configured |
-	 *     +----------+------------+
+	 *     +-----------+------------+
+	 *     | Provider  | Status     |
+	 *     +-----------+------------+
+	 *     | openai    | configured |
+	 *     | anthropic | configured |
+	 *     +-----------+------------+
 	 *
 	 * @when before_wp_load
 	 *

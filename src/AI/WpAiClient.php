@@ -87,8 +87,15 @@ class WpAiClient {
 			if ( $this->service && $this->model ) {
 				$prompt_builder = $prompt_builder->using_model_preference( [ $this->service, $this->model ] );
 			} elseif ( $this->model ) {
-				// If only model is specified, try to use it as a preference.
-				$prompt_builder = $prompt_builder->using_model_preference( [ 'anthropic', $this->model ], [ 'openai', $this->model ], [ 'google', $this->model ] );
+				// If only model is specified without a service, try common providers.
+				// This provides a reasonable fallback that works with most configurations.
+				// The WP AI Client will automatically use the first available provider
+				// that has the specified model and is properly configured.
+				$prompt_builder = $prompt_builder->using_model_preference(
+					[ 'anthropic', $this->model ],
+					[ 'openai', $this->model ],
+					[ 'google', $this->model ]
+				);
 			}
 
 			// Generate text response.

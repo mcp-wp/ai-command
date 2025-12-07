@@ -4,6 +4,7 @@ namespace McpWp\AiCommand;
 
 use Mcp\Client\ClientSession;
 use McpWp\AiCommand\AI\AiClient;
+use McpWp\AiCommand\AI\WpAiClient;
 use McpWp\AiCommand\MCP\Client;
 use McpWp\AiCommand\Utils\CliLogger;
 use McpWp\AiCommand\Utils\McpConfig;
@@ -87,7 +88,7 @@ class AiCommand extends WP_CLI_Command {
 			$skip_builtin_servers = Utils\get_flag_value( $assoc_args, 'skip-builtin-servers' );
 			// Only use WP AI Client if MCP servers are skipped.
 			if ( $skip_builtin_servers ) {
-				$ai_client = new AI\WpAiClient( [], $approval_mode, $service, $model );
+				$ai_client = new WpAiClient( [], $approval_mode, $service, $model );
 				$ai_client->call_ai_service_with_prompt( $args[0] );
 				return;
 			}
