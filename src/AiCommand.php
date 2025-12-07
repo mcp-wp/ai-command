@@ -75,18 +75,30 @@ class AiCommand extends WP_CLI_Command {
 			WP_CLI::error( 'Not implemented yet.' );
 		}
 
-		if ( ! function_exists( '\ai_services' ) ) {
-			WP_CLI::error( 'This command currently requires the AI Services plugin. You can install it with `wp plugin install ai-services --activate`.' );
+		// Check if WP AI Client is available (preferred).
+		$use_wp_ai_client = class_exists( '\WordPress\AI_Client\AI_Client' );
+
+		// Fallback to AI Services if WP AI Client is not available.
+		if ( ! $use_wp_ai_client && ! function_exists( '\ai_services' ) ) {
+			WP_CLI::error( 'This command requires either the WP AI Client (WordPress 7.0+) or the AI Services plugin. You can install the AI Services plugin with `wp plugin install ai-services --activate`.' );
 		}
-
-		$skip_builtin_servers = Utils\get_flag_value( $assoc_args, 'skip-builtin-servers', 'all' );
-
-		$sessions = $this->get_sessions( $with_wordpress && 'cli' === $skip_builtin_servers, 'wp' === $skip_builtin_servers );
-		$tools    = $this->get_tools( $sessions );
 
 		$approval_mode = (bool) Utils\get_flag_value( $assoc_args, 'approval-mode', false );
 		$service       = Utils\get_flag_value( $assoc_args, 'service' );
 		$model         = Utils\get_flag_value( $assoc_args, 'model' );
+
+		// If using WP AI Client and no MCP tools are needed, use simplified path.
+		if ( $use_wp_ai_client && ! $approval_mode ) {
+			$ai_client = new AI\WpAiClient( [], $approval_mode, $service, $model );
+			$ai_client->call_ai_service_with_prompt( $args[0] );
+			return;
+		}
+
+		// Otherwise, use the full MCP integration with AI Services.
+		$skip_builtin_servers = Utils\get_flag_value( $assoc_args, 'skip-builtin-servers', 'all' );
+
+		$sessions = $this->get_sessions( $with_wordpress && 'cli' === $skip_builtin_servers, 'wp' === $skip_builtin_servers );
+		$tools    = $this->get_tools( $sessions );
 
 		$ai_client = new AiClient( $tools, $approval_mode, $service, $model );
 

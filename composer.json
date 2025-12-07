@@ -19,7 +19,8 @@
         "roave/security-advisories": "dev-latest",
         "wp-cli/extension-command": "^2.1",
         "wp-cli/wp-cli-tests": "^v4.3.9",
-        "wpackagist-plugin/ai-services": "^0.6.0"
+        "wpackagist-plugin/ai-services": "^0.6.0",
+        "wordpress/wp-ai-client": "^0.2.1"
     },
   "repositories":[
     {
