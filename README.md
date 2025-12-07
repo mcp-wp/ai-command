@@ -21,18 +21,11 @@ To install the latest development version of this package, use the following com
 wp package install mcp-wp/ai-command:dev-main
 ```
 
-This package supports two AI backends:
-
-1. **WP AI Client** (recommended, available in WordPress 7.0+): The official WordPress AI client library, bundled with the AI plugin.
-2. **AI Services plugin** (fallback): A third-party plugin available from the WordPress plugin directory.
-
-The command will automatically use WP AI Client if available, falling back to AI Services if not.
+This package uses the **WP AI Client** (available in WordPress 7.0+ or via the AI plugin) for AI functionality.
 
 ### Configuration
 
-#### Using WP AI Client
-
-If you're using WordPress 7.0+ or have the AI plugin installed:
+Configure credentials for AI providers:
 
 ```bash
 # Configure credentials for AI providers
@@ -44,15 +37,7 @@ wp ai credentials set google YOUR-GOOGLE-API-KEY
 wp ai credentials list
 ```
 
-#### Using AI Services Plugin
-
-If WP AI Client is not available, install the [AI Services plugin](https://wordpress.org/plugins/ai-services):
-
-```bash
-wp plugin install ai-services --activate
-```
-
-Then configure your API keys through the WordPress admin or using environment variables.
+Credentials are stored in the WordPress database and can also be managed through the WordPress admin settings screen.
 
 ### Reporting a bug
 

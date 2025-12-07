@@ -2,13 +2,7 @@
 
 namespace McpWp\AiCommand;
 
-use Mcp\Client\ClientSession;
-use McpWp\AiCommand\AI\AiClient;
 use McpWp\AiCommand\AI\WpAiClient;
-use McpWp\AiCommand\MCP\Client;
-use McpWp\AiCommand\Utils\CliLogger;
-use McpWp\AiCommand\Utils\McpConfig;
-use McpWp\MCP\Servers\WordPress\WordPress;
 use WP_CLI;
 use WP_CLI\Utils;
 use WP_CLI_Command;
@@ -16,9 +10,7 @@ use WP_CLI_Command;
 /**
  * AI command class.
  *
- * Allows interacting with an LLM using MCP.
- *
- * @phpstan-import-type ToolDefinition from AiClient
+ * Allows interacting with an LLM using the WP AI Client.
  */
 class AiCommand extends WP_CLI_Command {
 
@@ -30,38 +22,26 @@ class AiCommand extends WP_CLI_Command {
 	 * <prompt>
 	 * : AI prompt.
 	 *
-	 * [--skip-builtin-servers[=<server>]]
-	 * : Skip loading the built-in servers for WP-CLI and the current WordPress site.
-	 * Can be set to 'all' (skip both), 'cli' (skip the WP-CLI server),
-	 * or 'wp' (skip the WordPress server).
-	 *
 	 * [--skip-wordpress]
 	 * : Run command without loading WordPress. (Not implemented yet)
 	 *
-	 * [--approval-mode]
-	 * : Approve tool usage before running.
-	 *
 	 * [--service=<service>]
 	 * : Manually specify the AI service to use.
-	 * Depends on the available AI services.
 	 * Examples: 'google', 'anthropic', 'openai'.
 	 *
 	 * [--model=<model>]
 	 * : Manually specify the LLM model that should be used.
-	 * Depends on the available AI services.
-	 * Examples: 'gemini-2.0-flash', 'gpt-4o'.
+	 * Examples: 'gemini-2.0-flash', 'gpt-4o', 'claude-sonnet-4-5'.
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     # Get data from WordPress
-	 *     $ wp ai "What are the titles of my last three posts?"
-	 *     - Hello world
-	 *     - My awesome post
-	 *     - Another post
+	 *     # Ask a simple question
+	 *     $ wp ai "Explain WordPress in one sentence"
+	 *     WordPress is a free and open-source content management system...
 	 *
-	 *     # Interact with multiple MCP servers.
-	 *     $ wp ai "Take file foo.txt and create a new blog post from it"
-	 *     Success: Blog post created.
+	 *     # Use a specific model
+	 *     $ wp ai "Summarize the history of WordPress" --model=gpt-4o
+	 *     WordPress was created in 2003...
 	 *
 	 * @when before_wp_load
 	 *
@@ -76,36 +56,15 @@ class AiCommand extends WP_CLI_Command {
 			WP_CLI::error( 'Not implemented yet.' );
 		}
 
-		$approval_mode = (bool) Utils\get_flag_value( $assoc_args, 'approval-mode', false );
-		$service       = Utils\get_flag_value( $assoc_args, 'service' );
-		$model         = Utils\get_flag_value( $assoc_args, 'model' );
-
-		// Check if WP AI Client is available (preferred for simple prompts).
-		$use_wp_ai_client = class_exists( '\WordPress\AI_Client\AI_Client' );
-
-		// If using WP AI Client and no MCP tools/approval is needed, use simplified path.
-		if ( $use_wp_ai_client && ! $approval_mode ) {
-			$skip_builtin_servers = Utils\get_flag_value( $assoc_args, 'skip-builtin-servers' );
-			// Only use WP AI Client if MCP servers are skipped.
-			if ( $skip_builtin_servers ) {
-				$ai_client = new WpAiClient( [], $approval_mode, $service, $model );
-				$ai_client->call_ai_service_with_prompt( $args[0] );
-				return;
-			}
+		// Ensure WP AI Client is available.
+		if ( ! class_exists( '\WordPress\AI_Client\AI_Client' ) ) {
+			WP_CLI::error( 'This command requires the WP AI Client. Please ensure WordPress 7.0+ or the AI plugin is installed and activated.' );
 		}
 
-		// Otherwise, use the full MCP integration with AI Services (required for tools).
-		if ( ! function_exists( '\ai_services' ) ) {
-			WP_CLI::error( 'This command requires the AI Services plugin for MCP tool integration. You can install it with `wp plugin install ai-services --activate`. Alternatively, use `--skip-builtin-servers=all` to use WP AI Client without MCP tools.' );
-		}
+		$service = Utils\get_flag_value( $assoc_args, 'service' );
+		$model   = Utils\get_flag_value( $assoc_args, 'model' );
 
-		$skip_builtin_servers = Utils\get_flag_value( $assoc_args, 'skip-builtin-servers', 'all' );
-
-		$sessions = $this->get_sessions( $with_wordpress && 'cli' === $skip_builtin_servers, 'wp' === $skip_builtin_servers );
-		$tools    = $this->get_tools( $sessions );
-
-		$ai_client = new AiClient( $tools, $approval_mode, $service, $model );
-
+		$ai_client = new WpAiClient( [], false, $service, $model );
 		$ai_client->call_ai_service_with_prompt( $args[0] );
 	}
 

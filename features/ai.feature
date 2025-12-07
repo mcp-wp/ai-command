@@ -1,5 +1,5 @@
 Feature: AI command
-  Scenario: Missing AI Services plugin
+  Scenario: Missing WP AI Client
     When I try `wp ai "Hello World"`
     Then STDERR should contain:
       """
@@ -16,12 +16,5 @@ Feature: AI command
     When I try `wp ai "Hello World"`
     Then STDERR should contain:
       """
-      This command requires the AI Services plugin for MCP tool integration.
-      """
-
-    When I run `wp plugin install ai-services --activate`
-    When I try `wp ai "Hello World"`
-    Then STDERR should contain:
-      """
-      No service satisfying the given arguments is registered and available.
+      This command requires the WP AI Client.
       """
