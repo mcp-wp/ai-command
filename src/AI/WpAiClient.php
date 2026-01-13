@@ -3,68 +3,23 @@
 namespace McpWp\AiCommand\AI;
 
 use Exception;
-use InvalidArgumentException;
 use WP_CLI;
-use function cli\menu;
 use function cli\prompt;
 
 /**
  * WP AI Client wrapper class.
  *
  * Provides an adapter for the WP AI Client library.
- *
- * @phpstan-type ToolDefinition array{name: string, description: string|null, parameters: array<string, array<string, mixed>>, server: string, callback: callable}
  */
 class WpAiClient {
-	private bool $needs_approval = true;
-
 	/**
-	 * @param array       $tools         List of tools.
-	 * @param bool        $approval_mode Whether tool usage needs to be approved.
-	 * @param string|null $service       Service to use.
-	 * @param string|null $model         Model to use.
-	 *
-	 * @phpstan-param ToolDefinition[] $tools
+	 * @param string|null $service Service to use.
+	 * @param string|null $model   Model to use.
 	 */
 	public function __construct(
-		private readonly array $tools,
-		private readonly bool $approval_mode,
 		private readonly ?string $service,
 		private readonly ?string $model
 	) {}
-
-	/**
-	 * Calls a given tool.
-	 *
-	 * @param string $tool_name Tool name.
-	 * @param mixed $tool_args Tool args.
-	 * @return mixed
-	 */
-	private function call_tool( string $tool_name, mixed $tool_args ): mixed {
-		foreach ( $this->tools as $tool ) {
-			if ( $tool_name === $tool['name'] ) {
-				return call_user_func( $tool['callback'], $tool_args );
-			}
-		}
-
-		throw new InvalidArgumentException( 'Tool "' . $tool_name . '" not found.' );
-	}
-
-	/**
-	 * Returns the name of the server a given tool is coming from.
-	 *
-	 * @param string $tool_name Tool name.
-	 * @return mixed
-	 */
-	private function get_tool_server_name( string $tool_name ): mixed {
-		foreach ( $this->tools as $tool ) {
-			if ( $tool_name === $tool['name'] ) {
-				return $tool['server'];
-			}
-		}
-
-		throw new InvalidArgumentException( 'Tool "' . $tool_name . '" not found.' );
-	}
 
 	/**
 	 * Calls AI service with a prompt.
@@ -75,6 +30,7 @@ class WpAiClient {
 		try {
 			// Initialize WP AI Client if not already done.
 			if ( ! did_action( 'init' ) ) {
+				// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- This is a core WordPress hook.
 				do_action( 'init' );
 			}
 
@@ -105,7 +61,7 @@ class WpAiClient {
 			WP_CLI::line( WP_CLI::colorize( "%G$text%n" ) );
 
 			// Keep the session open for follow-up questions.
-			$this->continue_conversation( $prompt, $text );
+			$this->continue_conversation();
 
 		} catch ( Exception $e ) {
 			WP_CLI::error( $e->getMessage() );
@@ -114,11 +70,8 @@ class WpAiClient {
 
 	/**
 	 * Continues the conversation with follow-up prompts.
-	 *
-	 * @param string $initial_prompt The initial prompt.
-	 * @param string $response The AI response.
 	 */
-	private function continue_conversation( string $initial_prompt, string $response ): void {
+	private function continue_conversation(): void {
 		$user_response = prompt( '', false, '' );
 
 		if ( empty( $user_response ) ) {
@@ -136,7 +89,7 @@ class WpAiClient {
 
 			WP_CLI::line( WP_CLI::colorize( "%G$text%n" ) );
 
-			$this->continue_conversation( $user_response, $text );
+			$this->continue_conversation();
 		} catch ( Exception $e ) {
 			WP_CLI::error( $e->getMessage() );
 		}

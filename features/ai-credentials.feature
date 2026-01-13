@@ -2,11 +2,26 @@ Feature: AI Credentials command
   Scenario: Credentials management with WP AI Client
     Given a WP installation
 
-    When I try `wp ai credentials list`
-    Then STDERR should contain:
+    When I run `wp ai credentials list`
+    Then STDOUT should contain:
       """
-      The WP AI Client is not available.
+      No credentials configured.
       """
 
-    # TODO: Add tests for when WP AI Client is available
-    # This would require installing the AI plugin or WordPress 7.0+
+    When I run `wp ai credentials set openai sk-test-key`
+    Then STDOUT should contain:
+      """
+      Success: Credentials for 'openai' saved.
+      """
+
+    When I run `wp ai credentials list`
+    Then STDOUT should contain:
+      """
+      openai
+      """
+
+    When I run `wp ai credentials delete openai`
+    Then STDOUT should contain:
+      """
+      Success: Credentials for 'openai' deleted.
+      """

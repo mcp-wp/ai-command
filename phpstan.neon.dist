@@ -4,15 +4,11 @@ parameters:
 		- ai-command.php
 		- src/
 	scanDirectories:
-		- vendor/wpackagist-plugin/ai-services/includes
-		- vendor/wpackagist-plugin/ai-services/third-party
+		- vendor/wordpress/wp-ai-client/src
 		- vendor/wp-cli/wp-cli/bundle/rmccue/requests
 		- vendor/wp-cli/wp-cli/php
 	bootstrapFiles:
 		- tests/phpstan/bootstrap.php
 	reportMaybesInMethodSignatures: false
-	strictRules:
-		disallowedEmpty: false
-		strictArrayFilter: false
 includes:
 	- phar://phpstan.phar/conf/bleedingEdge.neon
